@@ -1,0 +1,21 @@
+Thank you for participating in our experiment!\n\nPress right arrow to continue.
+This experiment has two components.
+First, you will hear 30 seconds of music,\nambiance, or silence.
+Second, you will hear a series of\nsentences, like this:
+Second, you will hear a series of\nsentences, like this:
+Sometimes the sentence will be spoken in a\nquiet environment clear, and other times\nit will be spoken in a loud environment,\nlike this:
+Sometimes the sentence will be spoken in a\nquiet environment clear, and other times\nit will be spoken in a loud environment,\nlike this:
+Listen carefully to each sentence and pay\nattention to *who* is performing the action.
+Boys that charm girls are dashing.\n\nWho is performing the action?
+In this case, the boys are doing the charming.
+Girls that charm boys are dashing.\n\nWho is performing the action?
+In this case, the girls are doing the charming.
+For each sentence, you need to identify the\n*gender* of the person performing the action.
+Uncles that aunts forgive are lenient.\n\nWhat is the gender of the person performing\nthe action?
+Since aunts are doing the forgiving, the\nanswer is female.
+Women that men surprise are thoughtful.\n\nWhat is the gender of the person performing\nthe action?
+Since men are doing the surprising, the\nanswer is male.
+If the gender of the person performing the\naction is male, press the right arrow key.\n\nIf the gender of the person performing the\naction is female, press the left arrow key.
+Let's do a practice block. You will hear some\nambiance and then the 8 sentences will begin.\n\nDuring the practice, the "male" and "female"\nlabels will flash green if you are correct, or\nred if you are wrong.\n\nYou will have 5 seconds to respond each trial.
+Great job! You answered %s out of 8 sentences\ncorrectly.\n\nExperimenter: press the left arrow\nkey to repeat the practice block.
+Now let's move onto the real experiment. You\nwill not be told if you are right or wrong\nafter each sentence.\n\nGood luck!
