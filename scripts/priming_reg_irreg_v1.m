@@ -43,7 +43,7 @@ if NoTutorial ~= 1
 end
 
 %% Set parameters
-textSize = 32; % Change this to change size of text. 
+textSize = 50; % Change this to change size of text. 
 
 p.blocks = 8; % number of blocks. 
 % NOTE: If p.blocks changes from an even number, double-check generate_keys
@@ -316,15 +316,6 @@ if ~NoTutorial
     % Practice block
     while 1
         correct = 0;
-        Screen('DrawTexture', wPtr, speaker_tex);
-        Screen('Flip', wPtr);
-        primeEnd = GetSecs() + dur_primes(1);
-        PsychPortAudio('FillBuffer', pahandle, audio_primes{2});
-        PsychPortAudio('Start', pahandle);
-
-        WaitTill(primeEnd + 0.1); 
-        Screen('Flip', wPtr);
-        WaitTill(GetSecs() + 0.5);
 
         for evt = 1:p.stimPerBlock
             WaitTill(GetSecs() + 0.5);
@@ -346,29 +337,16 @@ if ~NoTutorial
             [~, answer{evt}] = RTBox(windowStart + 5); 
 
             if strcmp('', answer{evt}) % If subject timed out
-                DrawFormattedText(wPtr, 'female', centerX - 500, 'center', [255 0 0]);
-                DrawFormattedText(wPtr, 'male', centerX + 500, 'center', [255 0 0]);
+                DrawFormattedText(wPtr, 'Too Slow! Be sure to respond quicker.', 'center', 'center', 255);
             elseif strcmp(key_pract_direction{evt}, answer{evt}) % If correct
                 correct = correct + 1;
-                if strcmp(answer{evt}, 'left')
-                    DrawFormattedText(wPtr, 'female', centerX - 500, 'center', [0 255 0]);
-                elseif strcmp(answer{evt}, 'right')
-                    DrawFormattedText(wPtr, 'male', centerX + 500, 'center', [0 255 0]);
-                end
-
+                DrawFormattedText(wPtr, 'You are correct! Good job!', 'center', 'center', 255);
             else % If wrong
-                if strcmp(answer{evt}, 'left')
-                    DrawFormattedText(wPtr, 'female', centerX - 500, 'center', [255 0 0]);
-                    DrawFormattedText(wPtr, 'male', centerX + 500, 'center', [0 255 0]);
-                elseif strcmp(answer{evt}, 'right')
-                    DrawFormattedText(wPtr, 'male', centerX + 500, 'center', [255 0 0]);
-                    DrawFormattedText(wPtr, 'female', centerX - 500, 'center', [0 255 0]);
-                end
-
+                DrawFormattedText(wPtr, 'Oops, wrong answer!', 'center', 'center', 255);
             end
 
             Screen('Flip', wPtr);
-            WaitTill(GetSecs() + 0.5);
+            WaitTill(GetSecs() + 1);
             Screen('Flip', wPtr);
         end
 
@@ -392,6 +370,12 @@ if ~NoTutorial
         end
 
     end
+    
+else
+    DrawFormattedText(wPtr, 'Press right arrow to begin experiment.', 'center', 'center', 255);
+    Screen('Flip', wPtr);
+    RTBox('Clear');
+    RTBox(inf);
 end
 
 %% ACTUAL EXPERIMENT %% 
@@ -404,6 +388,7 @@ evt = 1; % Index will increase after each trial
 try
     for blk = 1:p.blocks
         %% Present prime
+        WaitTill(GetSecs() + 1);   
         Screen('DrawTexture', wPtr, speaker_tex);
         Screen('Flip', wPtr);
         primeEnd = GetSecs() + dur_primes(key_primes(blk));
@@ -589,8 +574,8 @@ function [key_primes, key_sent, key_pract] = generate_keys(subj, p)
 % baseline blocks ensures that there are no contamination effects from
 % repeating rhythm blocks. 
 key_primes = nan(1, p.blocks);
-cb_reg_irr = Shuffle([4 4 2 2]);
-cb_env_sil = Shuffle([1 1 3 3]);
+cb_reg_irr = Shuffle([1 1 4 4]);
+cb_env_sil = Shuffle([2 2 3 3]);
 % 1 - Irregular/Complex prime
 % 2 - Environmental/Ambience sound prime
 % 3 - Silent prime

@@ -44,7 +44,7 @@ if NoTutorial ~= 1
 end
 
 %% Set parameters
-textSize = 32; % Change this to change size of text. 
+textSize = 50; % Change this to change size of text. 
 
 p.blocks = 8; % number of blocks. 
 % NOTE: If p.blocks changes from an even number, double-check generate_keys
@@ -317,15 +317,6 @@ if ~NoTutorial
     % Practice block
     while 1
         correct = 0;
-        Screen('DrawTexture', wPtr, speaker_tex);
-        Screen('Flip', wPtr);
-        primeEnd = GetSecs() + dur_primes(1);
-        PsychPortAudio('FillBuffer', pahandle, audio_primes{2});
-        PsychPortAudio('Start', pahandle);
-
-        WaitTill(primeEnd + 0.1); 
-        Screen('Flip', wPtr);
-        WaitTill(GetSecs() + 0.5);
 
         for evt = 1:p.stimPerBlock
             WaitTill(GetSecs() + 0.5);
@@ -347,29 +338,16 @@ if ~NoTutorial
             [~, answer{evt}] = RTBox(windowStart + 5); 
 
             if strcmp('', answer{evt}) % If subject timed out
-                DrawFormattedText(wPtr, 'female', centerX - 500, 'center', [255 0 0]);
-                DrawFormattedText(wPtr, 'male', centerX + 500, 'center', [255 0 0]);
+                DrawFormattedText(wPtr, 'Too Slow! Be sure to respond quicker.', 'center', 'center', 255);
             elseif strcmp(key_pract_direction{evt}, answer{evt}) % If correct
                 correct = correct + 1;
-                if strcmp(answer{evt}, 'left')
-                    DrawFormattedText(wPtr, 'female', centerX - 500, 'center', [0 255 0]);
-                elseif strcmp(answer{evt}, 'right')
-                    DrawFormattedText(wPtr, 'male', centerX + 500, 'center', [0 255 0]);
-                end
-
+                DrawFormattedText(wPtr, 'You are correct! Good job!', 'center', 'center', 255);
             else % If wrong
-                if strcmp(answer{evt}, 'left')
-                    DrawFormattedText(wPtr, 'female', centerX - 500, 'center', [255 0 0]);
-                    DrawFormattedText(wPtr, 'male', centerX + 500, 'center', [0 255 0]);
-                elseif strcmp(answer{evt}, 'right')
-                    DrawFormattedText(wPtr, 'male', centerX + 500, 'center', [255 0 0]);
-                    DrawFormattedText(wPtr, 'female', centerX - 500, 'center', [0 255 0]);
-                end
-
+                DrawFormattedText(wPtr, 'Oops, wrong answer!', 'center', 'center', 255);
             end
 
             Screen('Flip', wPtr);
-            WaitTill(GetSecs() + 0.5);
+            WaitTill(GetSecs() + 1);
             Screen('Flip', wPtr);
         end
 
@@ -393,27 +371,54 @@ if ~NoTutorial
         end
 
     end
+    
+else
+    DrawFormattedText(wPtr, 'Press right arrow to begin experiment.', 'center', 'center', 255);
+    Screen('Flip', wPtr);
+    RTBox('Clear');
+    RTBox(inf);
 end
 
 %% ACTUAL EXPERIMENT %% 
 % Preallocating variables
+for ii = 1:p.blocks
+    thisfield = ['block', num2str(ii)];
+    pulse.(thisfield) = nan(1, 100); 
+end
+pulse_fields = fields(pulse);
+
 answer = cell(1, p.numSent);
 resp = nan(1, p.numSent);
 eventEnd = nan(1, p.numSent);
+
+primeStart = nan(1, p.blocks);
 evt = 1; % Index will increase after each trial
+ignoreKeys = zeros(1, 256);
+ignoreKeys(32) = 1;
 
 try
     for blk = 1:p.blocks
         %% Present prime
+        WaitTill(GetSecs() + 1);
         Screen('DrawTexture', wPtr, speaker_tex);
         Screen('Flip', wPtr);
         primeEnd = GetSecs() + dur_primes(key_primes(blk));
         PsychPortAudio('FillBuffer', pahandle, audio_primes{key_primes(blk)});
-        PsychPortAudio('Start', pahandle);
-
-        WaitTill(primeEnd + 0.1); 
+        primeStart(blk) = PsychPortAudio('Start', pahandle, [], [], 1);
+        idx = 1;
+        while GetSecs() < primeEnd 
+            [keyIsDown, secs, keyCode] = KbCheck([], ignoreKeys);
+            if keyIsDown
+                pulse.(pulse_fields{blk})(idx) = secs;
+                idx = idx + 1;
+            end
+            
+            KbReleaseWait;            
+        end
+        
         Screen('Flip', wPtr);
         WaitTill(GetSecs() + 0.5);
+        RTBox('BufferSize', 1); % Reset buffer to collect subject response
         
         %% Present sentences
         for ii = 1:p.stimPerBlock
@@ -469,7 +474,6 @@ rethrow(err)
     
 end
 
-
 %% Close the experiment and save data
 % If the experiment does not encounter any errors, then this section is
 % responsible for saving the output. 
@@ -480,7 +484,22 @@ rt        = resp - eventEnd;
 data_cell = cell(p.numSent + 1, 7);
 data_mat  = nan(p.numSent, 7);
 
-% This is the format for the columns of data_cell and data_mat. 
+% Remove nans from pulse data and convert from absolute to time relative to
+% start of pulse
+for ii = 1:length(pulse_fields)
+    tempPulse = pulse.(pulse_fields{ii});
+    pulse.(pulse_fields{ii}) = tempPulse(~isnan(tempPulse));
+    tempPulseStart = repmat(primeStart(ii), 1, length(pulse.(pulse_fields{ii})));
+    pulse_rel.(pulse_fields{ii}) = pulse.(pulse_fields{ii}) - tempPulseStart;
+    for jj = 2:length(pulse_rel.(pulse_fields{ii}))
+        pulse_dt.(pulse_fields{ii})(jj-1) = pulse_rel.(pulse_fields{ii})(jj) - pulse_rel.(pulse_fields{ii})(jj-1);
+    end
+    
+end
+
+% This is the format for the columns of the behavioral data within 
+% data_cell and data_mat. The pulse data saves within data_mat as a series
+% of structures. 
 data_cell{1, 1} = 'Prime';
 data_cell{1, 2} = 'Sentence';
 data_cell{1, 3} = 'Obj/Subj';
@@ -567,7 +586,7 @@ end
 xlswrite(results_xls, data_cell);
 
 % Save as .mat for easy analysis
-save(results_mat, 'data_mat');
+save(results_mat, 'data_mat', 'pulse_rel', 'pulse_dt');
 
 % OPTIONAL - Save all variables for subject just in case you need them
 % save(results_all);
@@ -590,8 +609,8 @@ function [key_primes, key_sent, key_pract] = generate_keys(subj, p)
 % baseline blocks ensures that there are no contamination effects from
 % repeating rhythm blocks. 
 key_primes = nan(1, p.blocks);
-cb_reg_irr = Shuffle([4 4 2 2]);
-cb_env_sil = Shuffle([1 1 3 3]);
+cb_acc_dec = Shuffle([1 1 3 3]);
+cb_con_sil = Shuffle([2 2 4 4]);
 % 1 - Accelerating pulse prime
 % 2 - Constant pulse prime
 % 3 - Decelerating pulse prime
@@ -601,8 +620,8 @@ cb_env_sil = Shuffle([1 1 3 3]);
 % in set A or set B
 if strcmp(subj.set, 'A')
     for ii = 1:p.blocks/2
-        key_primes(2*ii-1) = cb_reg_irr(ii);
-        key_primes(2*ii)   = cb_env_sil(ii);
+        key_primes(2*ii-1) = cb_acc_dec(ii);
+        key_primes(2*ii)   = cb_con_sil(ii);
         % Note that 2*ii-1 indicates the odd-numbered blocks (1, 3, 5, 7), 
         % whereas 2*ii indicates the even-numbered blocks (2, 4, 6, 8). I
         % use this trick because there is a dimension mismatch between
@@ -612,8 +631,8 @@ if strcmp(subj.set, 'A')
     
 elseif strcmp(subj.set, 'B')
     for ii = 1:p.blocks/2
-        key_primes(2*ii-1) = cb_env_sil(ii);
-        key_primes(2*ii)   = cb_reg_irr(ii);
+        key_primes(2*ii-1) = cb_con_sil(ii);
+        key_primes(2*ii)   = cb_acc_dec(ii);
     end
     
 end
