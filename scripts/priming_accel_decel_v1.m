@@ -383,7 +383,7 @@ end
 % Preallocating variables
 for ii = 1:p.blocks
     thisfield = ['block', num2str(ii)];
-    pulse.(thisfield) = nan(1, 100); 
+    pulse.(thisfield) = []; % Preallocate pulse struct
 end
 pulse_fields = fields(pulse);
 
@@ -393,32 +393,44 @@ eventEnd = nan(1, p.numSent);
 
 primeStart = nan(1, p.blocks);
 evt = 1; % Index will increase after each trial
-ignoreKeys = zeros(1, 256);
-ignoreKeys(32) = 1;
 
 try
-    for blk = 1:p.blocks
+    for blk = 1:p.blocks        
         %% Present prime
         WaitTill(GetSecs() + 1);
+        
         Screen('DrawTexture', wPtr, speaker_tex);
         Screen('Flip', wPtr);
-        primeEnd = GetSecs() + dur_primes(key_primes(blk));
+        
+        pulse_temp = nan(1, 100);
+        primeStartTarget = GetSecs() + 1; % Start trial 1 second from now. 
+        % This extra 1 second lets PTB fill the buffer, mark the end of the
+        % stimuli, and start the KbQueue. 
+        primeEnd = primeStartTarget + dur_primes(key_primes(blk));
         PsychPortAudio('FillBuffer', pahandle, audio_primes{key_primes(blk)});
-        primeStart(blk) = PsychPortAudio('Start', pahandle, [], [], 1);
+        
         idx = 1;
+        KbQueueCreate
+        KbQueueStart
+        primeStart(blk) = PsychPortAudio('Start', pahandle, [], primeStartTarget, 1);
         while GetSecs() < primeEnd 
-            [keyIsDown, secs, keyCode] = KbCheck([], ignoreKeys);
+            [keyIsDown, timeAndKey] = KbQueueCheck;
             if keyIsDown
-                pulse.(pulse_fields{blk})(idx) = secs;
+                pulse_temp(idx) = timeAndKey(32); 
+                % Using a temp variable might save time?
+                % Also note that 32 is the keycode for space. Any other key
+                % press is effectively ignored. 
                 idx = idx + 1;
             end
             
-            KbReleaseWait;            
         end
+        
+        KbQueueRelease % Ends recording of subject response. 
+        
+        pulse.(pulse_fields{blk}) = pulse_temp;
         
         Screen('Flip', wPtr);
         WaitTill(GetSecs() + 0.5);
-        RTBox('BufferSize', 1); % Reset buffer to collect subject response
         
         %% Present sentences
         for ii = 1:p.stimPerBlock
@@ -487,8 +499,12 @@ data_mat  = nan(p.numSent, 7);
 % Remove nans from pulse data and convert from absolute to time relative to
 % start of pulse
 for ii = 1:length(pulse_fields)
-    tempPulse = pulse.(pulse_fields{ii});
-    pulse.(pulse_fields{ii}) = tempPulse(~isnan(tempPulse));
+    % Screen out zeros, which are incorrect key presses. 
+    tempPulse = pulse.(pulse_fields{ii})(pulse.(pulse_fields{ii}) > 0); 
+    
+    % Screen out NaNs, which are unused preallocated spots in the variable. 
+    pulse.(pulse_fields{ii}) = tempPulse(~isnan(tempPulse)); 
+    
     tempPulseStart = repmat(primeStart(ii), 1, length(pulse.(pulse_fields{ii})));
     pulse_rel.(pulse_fields{ii}) = pulse.(pulse_fields{ii}) - tempPulseStart;
     for jj = 2:length(pulse_rel.(pulse_fields{ii}))
