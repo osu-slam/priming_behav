@@ -397,7 +397,9 @@ evt = 1; % Index will increase after each trial
 try
     for blk = 1:p.blocks        
         %% Present prime
-        WaitTill(GetSecs() + 1);
+        DrawFormattedText(wPtr, 'Prepare for metronome or silence!', 'center', 'center', 255);
+        Screen('Flip', wPtr);
+        WaitTill(GetSecs() + 2);   
         
         Screen('DrawTexture', wPtr, speaker_tex);
         Screen('Flip', wPtr);
