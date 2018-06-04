@@ -388,7 +388,9 @@ evt = 1; % Index will increase after each trial
 try
     for blk = 1:p.blocks
         %% Present prime
-        WaitTill(GetSecs() + 1);   
+        DrawFormattedText('Prepare for metronome or silence!', wPtr, 'center', 'center', 255);
+        Screen('Flip', wPtr);
+        WaitTill(GetSecs() + 2);   
         Screen('DrawTexture', wPtr, speaker_tex);
         Screen('Flip', wPtr);
         primeEnd = GetSecs() + dur_primes(key_primes(blk));
