@@ -43,4 +43,4 @@ Author -- Matthew Heard, The Ohio State University, heardmatthew49@gmail.com
     stimuli then we need to re-normalize all stimuli to a new RMS. 
   \babble_track_330m_mono_44100 -- Babble track used to generate babble sentences. 
   
-Environmental prime is "Garden Ambience 2" from http://eng.universal-soundbank.com/atmospheres-outdoor.htm 
+Environmental prime is "Public Garden" from http://eng.universal-soundbank.com/atmospheres-outdoor.htm 

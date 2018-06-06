@@ -258,7 +258,7 @@ speaker_tex = Screen('MakeTexture', wPtr, speaker_mat);
 %% Finish preparing for experiment, run instructions
 if ~NoTutorial
 % Read in each line of instructions
-    inst_file = fullfile(dir_docs, 'instructions_regirreg_v1.txt');
+    inst_file = fullfile(dir_docs, 'instructions_regirreg.txt');
     fid = fopen(inst_file);
     ii = 1;
     while 1
@@ -316,6 +316,25 @@ if ~NoTutorial
     % Practice block
     while 1
         correct = 0;
+        
+        % Present practice prime (environmental sounds)
+        DrawFormattedText(wPtr, 'You will now hear ambiance.', 'center', 'center', 255);
+        Screen('Flip', wPtr);
+        
+        primeStartTarget = GetSecs() + 3; % Start trial 5 second from now. 
+        % These extra 2 second lets PTB fill the buffer, mark the end of 
+        % the stimuli, start the KbQueue
+        primeEnd = primeStartTarget + dur_primes(2);
+        
+        PsychPortAudio('FillBuffer', pahandle, audio_primes{2});
+        PsychPortAudio('Start', pahandle, [], primeStartTarget, 1);
+        Screen('DrawTexture', wPtr, speaker_tex);
+        Screen('Flip', wPtr);
+        WaitTill(primeEnd);
+        
+        DrawFormattedText(wPtr, '!!!', 'center', 'center', 255);
+        Screen('Flip', wPtr);
+        WaitTill(GetSecs() + 0.5);
 
         for evt = 1:p.stimPerBlock
             WaitTill(GetSecs() + 0.5);
@@ -337,7 +356,7 @@ if ~NoTutorial
             [~, answer{evt}] = RTBox(windowStart + 5); 
 
             if strcmp('', answer{evt}) % If subject timed out
-                DrawFormattedText(wPtr, 'Too Slow! Be sure to respond quicker.', 'center', 'center', 255);
+                DrawFormattedText(wPtr, 'Too slow! Be sure to respond quicker.', 'center', 'center', 255);
             elseif strcmp(key_pract_direction{evt}, answer{evt}) % If correct
                 correct = correct + 1;
                 DrawFormattedText(wPtr, 'You are correct! Good job!', 'center', 'center', 255);
@@ -364,6 +383,12 @@ if ~NoTutorial
             WaitTill(GetSecs + 0.5);
             RTBox('Clear');
             RTBox(inf);
+            % To prevent the practice condition from interfering with the
+            % rest of the experiment, I've inserted a 20 second break where
+            % the experiment is "loading". 
+            DrawFormattedText(wPtr, 'Loading experiment, please wait...', 'center', 'center', 255);
+            Screen('Flip', wPtr);
+            WaitTill(GetSecs() + 20);
             break
         else
             Screen('Flip', wPtr);
@@ -371,12 +396,12 @@ if ~NoTutorial
 
     end
     
-else
-    DrawFormattedText(wPtr, 'Press right arrow to begin experiment.', 'center', 'center', 255);
-    Screen('Flip', wPtr);
-    RTBox('Clear');
-    RTBox(inf);
 end
+
+DrawFormattedText(wPtr, 'Press right arrow to begin experiment.', 'center', 'center', 255);
+Screen('Flip', wPtr);
+RTBox('Clear');
+RTBox(inf);
 
 %% ACTUAL EXPERIMENT %% 
 % Preallocating variables
@@ -388,9 +413,9 @@ evt = 1; % Index will increase after each trial
 try
     for blk = 1:p.blocks
         %% Present prime
-        DrawFormattedText(wPtr, 'Prepare for music, forest sounds, or silence!', 'center', 'center', 255);
+        DrawFormattedText(wPtr, '!!!', 'center', 'center', 255);
         Screen('Flip', wPtr);
-        WaitTill(GetSecs() + 2);   
+        WaitTill(GetSecs() + 1); 
         Screen('DrawTexture', wPtr, speaker_tex);
         Screen('Flip', wPtr);
         primeEnd = GetSecs() + dur_primes(key_primes(blk));

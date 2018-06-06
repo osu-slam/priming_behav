@@ -13,6 +13,9 @@
 % 04/27/18 -- Finished coding v1, still need to finalize stim. -- MH
 % 05/03/18 -- Finished stimuli, code is complete! -- MH
 % 05/04/18 -- Cloned accelerating/decelerating version. -- MH
+% 06/04/18 -- Updated stimuli and made some small updates to the flow of
+%   the experiment. Added countdown before the start of the metronome, 
+%   edited instructions. 
 
 sca; DisableKeysForKbCheck([]); KbQueueStop; clc;
 clearvars;
@@ -259,7 +262,7 @@ speaker_tex = Screen('MakeTexture', wPtr, speaker_mat);
 %% Finish preparing for experiment, run instructions
 if ~NoTutorial
 % Read in each line of instructions
-    inst_file = fullfile(dir_docs, 'instructions_acceldecel_v1.txt');
+    inst_file = fullfile(dir_docs, 'instructions_acceldecel.txt');
     fid = fopen(inst_file);
     ii = 1;
     while 1
@@ -316,7 +319,49 @@ if ~NoTutorial
 
     % Practice block
     while 1
-        correct = 0;
+        correct = 0; % Reset counter
+        
+        % Present practice prime (constant metronome)
+        DrawFormattedText(wPtr, 'You will now hear a metronome.\nPlease tap along using the space bar\nonce the countdown has ended.', 'center', 'center', 255);
+        Screen('Flip', wPtr);
+        
+        % Preallocate variables
+        countdown_flip = [0.8 1.6 2.4 3.2]; % runs countdown
+        
+        primeStartTarget = GetSecs() + 5; % Start trial 5 second from now. 
+        % These extra 2 second lets PTB fill the buffer, mark the end of 
+        % the stimuli, start the KbQueue
+        primeEnd = primeStartTarget + dur_primes(key_primes(2));
+        countdown_flip = countdown_flip + primeStartTarget;
+        
+        PsychPortAudio('FillBuffer', pahandle, audio_primes{5});
+        idx = 1;
+        PsychPortAudio('Start', pahandle, [], primeStartTarget, 1);
+        
+        DrawFormattedText(wPtr, '3', 'center', 'center', 255);
+        Screen('Flip', wPtr);
+        
+        DrawFormattedText(wPtr, '2', 'center', 'center', 255);
+        WaitTill(countdown_flip(1));
+        Screen('Flip', wPtr);
+        
+        DrawFormattedText(wPtr, '1', 'center', 'center', 255);
+        WaitTill(countdown_flip(2));
+        Screen('Flip', wPtr);
+        
+        DrawFormattedText(wPtr, 'GO!', 'center', 'center', 255);
+        WaitTill(countdown_flip(3));
+        Screen('Flip', wPtr);
+        
+        Screen('DrawTexture', wPtr, speaker_tex);
+        WaitTill(countdown_flip(4));
+        Screen('Flip', wPtr);
+        
+        WaitTill(primeEnd);
+        
+        DrawFormattedText(wPtr, '!!!', 'center', 'center', 255);
+        Screen('Flip', wPtr);
+        WaitTill(GetSecs() + 0.5);
 
         for evt = 1:p.stimPerBlock
             WaitTill(GetSecs() + 0.5);
@@ -338,7 +383,7 @@ if ~NoTutorial
             [~, answer{evt}] = RTBox(windowStart + 5); 
 
             if strcmp('', answer{evt}) % If subject timed out
-                DrawFormattedText(wPtr, 'Too Slow! Be sure to respond quicker.', 'center', 'center', 255);
+                DrawFormattedText(wPtr, 'Too slow! Be sure to respond quicker.', 'center', 'center', 255);
             elseif strcmp(key_pract_direction{evt}, answer{evt}) % If correct
                 correct = correct + 1;
                 DrawFormattedText(wPtr, 'You are correct! Good job!', 'center', 'center', 255);
@@ -365,6 +410,12 @@ if ~NoTutorial
             WaitTill(GetSecs + 0.5);
             RTBox('Clear');
             RTBox(inf);
+            % To prevent the practice condition from interfering with the
+            % rest of the experiment, I've inserted a 20 second break where
+            % the experiment is "loading". 
+            DrawFormattedText(wPtr, 'Loading experiment, please wait...', 'center', 'center', 255);
+            Screen('Flip', wPtr);
+            WaitTill(GetSecs() + 20);
             break
         else
             Screen('Flip', wPtr);
@@ -372,12 +423,12 @@ if ~NoTutorial
 
     end
     
-else
-    DrawFormattedText(wPtr, 'Press right arrow to begin experiment.', 'center', 'center', 255);
-    Screen('Flip', wPtr);
-    RTBox('Clear');
-    RTBox(inf);
 end
+
+DrawFormattedText(wPtr, 'Press right arrow to begin.', 'center', 'center', 255);
+Screen('Flip', wPtr);
+RTBox('Clear');
+RTBox(inf);
 
 %% ACTUAL EXPERIMENT %% 
 % Preallocating variables
@@ -397,24 +448,51 @@ evt = 1; % Index will increase after each trial
 try
     for blk = 1:p.blocks        
         %% Present prime
-        DrawFormattedText(wPtr, 'Prepare for metronome or silence!', 'center', 'center', 255);
-        Screen('Flip', wPtr);
-        WaitTill(GetSecs() + 2);   
-        
-        Screen('DrawTexture', wPtr, speaker_tex);
+        DrawFormattedText(wPtr, '!!!', 'center', 'center', 255);
         Screen('Flip', wPtr);
         
-        pulse_temp = nan(1, 100);
-        primeStartTarget = GetSecs() + 1; % Start trial 1 second from now. 
-        % This extra 1 second lets PTB fill the buffer, mark the end of the
-        % stimuli, and start the KbQueue. 
+        % Preallocate variables
+        pulse_temp = nan(1, 100); % stores subject response
+        
+        if key_primes(blk) == 1 %% Accelerating
+            countdown_flip = [1 1.986 2.958 3.916]; % cues when to display the countdown. 
+        elseif any(key_primes(blk) == [2 4]) %% Constant or silent
+            countdown_flip = [0.5 1 1.5 2];
+        elseif key_primes(blk) == 3 %% Decelerating
+            countdown_flip = [0.3 0.614 0.942 1.284];
+        end
+        
+        primeStartTarget = GetSecs() + 2; % Start trial 1 second from now. 
+        % These extra 2 second lets PTB fill the buffer, mark the end of 
+        % the stimuli, start the KbQueue
         primeEnd = primeStartTarget + dur_primes(key_primes(blk));
-        PsychPortAudio('FillBuffer', pahandle, audio_primes{key_primes(blk)});
+        countdown_flip = countdown_flip + primeStartTarget;
         
+        PsychPortAudio('FillBuffer', pahandle, audio_primes{key_primes(blk)});
         idx = 1;
         KbQueueCreate
         KbQueueStart
         primeStart(blk) = PsychPortAudio('Start', pahandle, [], primeStartTarget, 1);
+        
+        DrawFormattedText(wPtr, '3', 'center', 'center', 255);
+        Screen('Flip', wPtr);
+        
+        DrawFormattedText(wPtr, '2', 'center', 'center', 255);
+        WaitTill(countdown_flip(1));
+        Screen('Flip', wPtr);
+        
+        DrawFormattedText(wPtr, '1', 'center', 'center', 255);
+        WaitTill(countdown_flip(2));
+        Screen('Flip', wPtr);
+        
+        DrawFormattedText(wPtr, 'GO!', 'center', 'center', 255);
+        WaitTill(countdown_flip(3));
+        Screen('Flip', wPtr);
+        
+        Screen('DrawTexture', wPtr, speaker_tex);
+        WaitTill(countdown_flip(4));
+        Screen('Flip', wPtr);
+        
         while GetSecs() < primeEnd 
             [keyIsDown, timeAndKey] = KbQueueCheck;
             if keyIsDown
@@ -431,7 +509,9 @@ try
         
         pulse.(pulse_fields{blk}) = pulse_temp;
         
+        DrawFormattedText(wPtr, '!!!', 'center', 'center', 255);
         Screen('Flip', wPtr);
+        
         WaitTill(GetSecs() + 0.5);
         
         %% Present sentences
