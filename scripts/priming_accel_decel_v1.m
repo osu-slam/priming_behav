@@ -238,7 +238,7 @@ cd(dir_exp)
 % this incredibly powerful toolbox, I highly recommend checking out these 
 % tutorials: http://peterscarfe.com/ptbtutorials.html
 [wPtr, rect] = Screen('OpenWindow', 0, 0);
-DrawFormattedText(wPtr, 'Please wait, preparing experiment...', [], [], 255);
+DrawFormattedText(wPtr, 'Please wait...', [], [], 255);
 Screen('Flip', wPtr);
 centerX = rect(3)/2;
 centerY = rect(4)/2;
@@ -279,9 +279,9 @@ if ~NoTutorial
     inst_lines = inst_lines';
 
     % The tutorial
-    noClear = [0 0 0 0 0 0 0 0 1 0 1 0 0 1 0 1 0 0 0 0 0];
+    noClear = [0 0 0 1 0 1 0 0 1 0 1 0 0 1 0 1 0 0 0 0 0];
     for ii = 1:19
-        if any(ii == [10, 12, 15, 17])
+        if any(ii == [5, 7, 10, 12, 15, 17])
             DrawFormattedText(wPtr, inst_lines{ii}, 'center', centerY + 200, 255);
         else
             DrawFormattedText(wPtr, inst_lines{ii}, 'center', 'center', 255);
@@ -291,22 +291,22 @@ if ~NoTutorial
         WaitSecs(0.5);
 
         if ii == 5
-            PsychPortAudio('FillBuffer', pahandle, audio_pract{8});
+            PsychPortAudio('FillBuffer', pahandle, audio_pract{16});
             PsychPortAudio('Start', pahandle);
         elseif ii == 7
-            PsychPortAudio('FillBuffer', pahandle, audio_pract{7});
+            PsychPortAudio('FillBuffer', pahandle, audio_pract{15});
             PsychPortAudio('Start', pahandle);
         elseif ii == 9
-            PsychPortAudio('FillBuffer', pahandle, audio_pract{8});
+            PsychPortAudio('FillBuffer', pahandle, audio_pract{16});
             PsychPortAudio('Start', pahandle);
         elseif ii == 11
-            PsychPortAudio('FillBuffer', pahandle, audio_pract{5});
+            PsychPortAudio('FillBuffer', pahandle, audio_pract{13});
             PsychPortAudio('Start', pahandle);
         elseif ii == 14
-            PsychPortAudio('FillBuffer', pahandle, audio_pract{10});
+            PsychPortAudio('FillBuffer', pahandle, audio_pract{26});
             PsychPortAudio('Start', pahandle);
         elseif ii == 16
-            PsychPortAudio('FillBuffer', pahandle, audio_pract{19});
+            PsychPortAudio('FillBuffer', pahandle, audio_pract{27});
             PsychPortAudio('Start', pahandle);
         end
 
@@ -413,7 +413,7 @@ if ~NoTutorial
             % To prevent the practice condition from interfering with the
             % rest of the experiment, I've inserted a 20 second break where
             % the experiment is "loading". 
-            DrawFormattedText(wPtr, 'Loading experiment, please wait...', 'center', 'center', 255);
+            DrawFormattedText(wPtr, 'Please wait...', 'center', 'center', 255);
             Screen('Flip', wPtr);
             WaitTill(GetSecs() + 20);
             break

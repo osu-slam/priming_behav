@@ -2,7 +2,8 @@ close all
 clearvars
 cd ..
 cd stim
-cd primes_reg_irreg
+cd primes_reg_irreg_v2
+cd raw
 
 files = dir('*.wav');
 
@@ -32,5 +33,5 @@ for ii = 1:length(files)
     title(['Single-Sided Amplitude Spectrum of ' name])
     xlabel('f (Hz)')
     ylabel('|P1(f)|')
-    axis([0 20 0 max(P1(1:sum(f < 20)))])
+    axis([0 20 0 1*10^-4])
 end
