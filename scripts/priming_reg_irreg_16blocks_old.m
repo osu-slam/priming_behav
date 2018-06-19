@@ -53,8 +53,6 @@ p.blocks = 16; % Number of blocks.
 % NOTE: If p.blocks changes from an even number, double-check generate_keys
 % as it will break. I added a test to ensure that p.blocks is an even 
 % number before executing the function. 
-% And now, if this changes from 16 this completely breaks counterbalancing
-% babble across primes!
 
 p.repPrimesPerExp = 2; % Repeated primes over the experiment.
 % NOTE: IF p.repPrimesPerExp changes from 2, double-check 
@@ -119,7 +117,7 @@ end
 
 % key_primes and key_sentences - order of primes and sentences
 [key_primes, key_sent, key_pract] = generate_keys(subj, p);
-sentencecheck(key_sent, key_primes, p)
+sentencecheck(key_sent, p)
 % For the sake of readability I moved all of this code into functions
 % which are specified at the end of this document. 
 % NOTE: Instructions has one practice block which draws from 4 sentences.
@@ -262,7 +260,7 @@ pahandle = PsychPortAudio('Open', [], [], [], fs);
 % online, so I recommend reading RTBox.m and RTBoxdemo.m 
 RTBox('fake', 1);
 RTBox('UntilTimeout', 1);
-RTBox('ButtonNames', {'left', 'right', 'space', '4'});
+RTBox('ButtonNames', {'left', 'right', '3', '4'});
 
 % I convert the speaker image matrix into a texture at this point so the
 % experiment runs faster. 
@@ -681,51 +679,38 @@ key_structures = Shuffle(1:8:p.numStim);
 
 % COUNTERBALANCE NOISE CONDITIONS
 % This ensures an equal number of babble OR/SR conditions across all of the
-% blocks, and also guarantees a counterbalance of babble/clear across each
-% prime across the entire experiment. Note that there are six combinations 
-% of noise/clear sentences, but only 16 blocks. I chose to not use the 
-% condition where all O-sentences are noise and a block or all S-sentneces 
-% are noise. The reason I use 5, 6, 9, and 10 is because I later convert 
-% these into binary vectors!
-
-% The following FOR loop counterbalances stimuli across the "superordinate"
-% categories of primes (i.e. reg/irreg/ambiance/silence). % This strange 
-% Shuffle syntax ensures that the counterbalance matrices are shuffled 
-% across column and across row independently, thus preserving
-% counterbalance. 
-cb_noise = cell(1, 4); 
-for ii = 1:4 
-    cb_noise{ii} = Shuffle(Shuffle([5, 6; 10, 9], 1), 2);
-    % 5  -- OM and SM babble [0 1 0 1]
-    % 6  -- OM and SF babble [0 1 1 0]
-    % 9  -- OF and SM babble [1 0 0 1]
-    % 10 -- OF and SF babble [1 0 1 0]
-end
-
-idx_vec = [1 3 1 3 1 3 1 3];
-% The first two items in each cb_noise matrix are used to determine the
-% "short" prime's noise conditions, and the third and fourth are used in
-% the "long" prime's noise conditions. The bizzare Shuffle syntax earlier
-% ensures that the short and long primes are counterbalanced, and this
-% helps select items 1 and 2, or 3 and 4 from each matrix. 
-
-idx = 1;
+% blocks, and also guarantees a counterbalance of each sentence type across
+% every two blocks. Note that there are six combinations of noise/clear 
+% sentences, but only 16 blocks. Therefore two blocks need to be dropped, 
+% and I chose to drop a block where all O-sentences are noise and a block 
+% where all S-sentneces are noise. The reason I use such strange digits is 
+% because I later convert these into binary vectors!
+pairs = [5, 10; 6, 9];
+key_babble_half = Shuffle([5 5 6 6 9 9 10 10]);
 key_babble_full = nan(1, p.blocks);
-
-for ii = key_primes % for each prime...
-    this_prime = ceil(ii/2); 
-    % Above: is the prime complex (1), ambiance (2), silent (3) , or 
-    % regular (4)? If so, pull from that cell. 
-
-    key_babble_full(idx) = cb_noise{this_prime}(idx_vec(ii)); 
-    % Element idx in the key_noise is thus equal to the correct element
-    % from the corresponding cb_noise matrix!
+idx1 = 1;
+idx2 = 2;
+for ii = key_babble_half
+    for jj = 1:3
+        thispair = pairs(jj, :);
+        if any(ii == thispair)
+            nextblock = thispair(ii ~= thispair);
+            break
+            
+        end
+        
+    end
     
-    % Don't forget to increase your index!
-    idx_vec(ii) = idx_vec(ii) + 1;
-    idx = idx + 1;
+    key_babble_full(idx1) = ii;
+    key_babble_full(idx2) = nextblock;
+    idx1 = idx1 + 2;
+    idx2 = idx2 + 2;
+    
 end
-
+% 5  -- OM and SM babble [0 1 0 1]
+% 6  -- OM and SF babble [0 1 1 0]
+% 9  -- OF and SM babble [1 0 0 1]
+% 10 -- OF and SF babble [1 0 1 0]
 
 % COUNTERBALANCE SENTENCES WITHIN BLOCKS
 % This code ensures that each block of 8 sentences features the same types
@@ -761,7 +746,7 @@ key_pract = Shuffle(horzcat((1:p.stimPerBlock:16) + Shuffle(0:3), (17:p.stimPerB
     
 end
 
-function sentencecheck(key_sent, key_primes, p)
+function sentencecheck(key_sent, p)
 % This function throws an error if there is a problem with the sentences 
 % key. It counts the number of object- and subject-relative, male and 
 % female, clear and babble sentences and makes sure they are all equal. 
@@ -802,14 +787,6 @@ for ii = 1:length(key_sent)
     end
 end
 
-% Sort sentences by prime
-idx = 1;
-each_prime = cell(1, 8);
-for ii = key_primes
-    each_prime{ii} = horzcat(each_prime{ii}, key_sent(idx:idx+3)); 
-    idx = idx + 4;
-end
-
 % TEST - does each category have the same number of sentences?
 if (length(obje) ~= length(subj))
     error('sentencecheck: Number of object and subject-relative stim not equal')    
@@ -821,25 +798,24 @@ end
 
 % Check each block of sentences for balance
 block = 1;
-master_blocks = repmat(0:2:6, [4, 1]) + de2bi([5, 6, 9, 10], 'left-msb');
+master_blocks = repmat(0:2:6, [6, 1]) + de2bi([3, 5, 6, 9, 10, 12], 'left-msb');
 for ii = 1:p.stimPerBlock:length(key_sent)
     temp1 = key_sent(ii:ii+p.stimPerBlock-1) - 1;
-    temp1 = repmat(sort(mod(temp1, 8)), [4, 1]);
+    temp1 = repmat(sort(mod(temp1, 8)), [6, 1]);
+    if mod(ii, 8) == 1 % every two blocks, check this & the following block
+        temp2 = key_sent(ii:ii+2*p.stimPerBlock-1) - 1;
+        temp2 = sort(mod(temp2, 8));
+        if ~isequal(temp2, 0:7)
+            error(['sentencecheck: blocks ' num2str(block) 'and ' num2str(block+1) ' are not counterbalanced'])
+        end
+        
+    end
     
     if ~any(all(temp1 == master_blocks, 2))
         error(['sentencecheck: block ' num2str(block) ' does not have a legal arrangement of sentences'])
     end
     
     block = block + 1;
-end
-
-% Check each prime for counterbalance
-for ii = 1:length(each_prime)
-    thisblock = sort(mod(each_prime{ii}, 8)); 
-    if any(thisblock ~= 0:7)
-        error(['sentencecheck: prime category ' num2str(ii) ' does not have equal number of each sentence'])
-    end
-    
 end
 
 end

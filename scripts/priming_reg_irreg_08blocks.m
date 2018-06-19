@@ -14,6 +14,7 @@
 % 05/03/18 -- Finished stimuli, code is complete!
 % 06/05/18 -- Changed instructions and tutorials. Started V2 with a
 %   different structure to blocks. 
+% 06/18/18 -- Updated instructions. 
 
 sca; DisableKeysForKbCheck([]); KbQueueStop; clc;
 clearvars;
@@ -320,10 +321,10 @@ if ~NoTutorial
         correct = 0;
         
         % Present practice prime (environmental sounds)
-        DrawFormattedText(wPtr, 'You will now hear ambiance.', 'center', 'center', 255);
+        DrawFormattedText(wPtr, 'You will now hear ambiance.\nPlease stare at the icon\nin the center of the screen.', 'center', 'center', 255);
         Screen('Flip', wPtr);
         
-        primeStartTarget = GetSecs() + 3; % Start trial 5 second from now. 
+        primeStartTarget = GetSecs() + 4; % Start trial 4 seconds from now. 
         % These extra 2 second lets PTB fill the buffer, mark the end of 
         % the stimuli, start the KbQueue
         primeEnd = primeStartTarget + dur_primes(2);

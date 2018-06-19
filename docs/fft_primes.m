@@ -2,8 +2,7 @@ close all
 clearvars
 cd ..
 cd stim
-cd primes_reg_irreg_v2
-cd raw
+cd primes_reg_irreg_16blocks
 
 files = dir('*.wav');
 
