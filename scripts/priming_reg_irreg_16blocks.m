@@ -408,7 +408,7 @@ if ~NoTutorial
         WaitSecs(0.5);
         RTBox('Clear');
         [~, cont] = RTBox(inf);
-        if strcmp(cont, 'right')
+        if strcmp(cont, 'space')
             DrawFormattedText(wPtr, inst_lines{21}, 'center', 'center', 255);
             Screen('Flip', wPtr);
             WaitTill(GetSecs + 0.5);
@@ -429,7 +429,7 @@ if ~NoTutorial
     
 end
 
-DrawFormattedText(wPtr, 'Press right arrow to begin.', 'center', 'center', 255);
+DrawFormattedText(wPtr, 'Press space to begin.', 'center', 'center', 255);
 Screen('Flip', wPtr);
 RTBox('Clear');
 RTBox(inf);
