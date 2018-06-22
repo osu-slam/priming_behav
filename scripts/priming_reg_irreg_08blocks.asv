@@ -255,7 +255,7 @@ pahandle = PsychPortAudio('Open', [], [], [], fs);
 % online, so I recommend reading RTBox.m and RTBoxdemo.m 
 RTBox('fake', 1);
 RTBox('UntilTimeout', 1);
-RTBox('ButtonNames', {'left', 'right', '3', '4'});
+RTBox('ButtonNames', {'left', 'right', 'space', '4'});
 
 % I convert the speaker image matrix into a texture at this point so the
 % experiment runs faster. 
@@ -661,14 +661,14 @@ end
 %   the key of OR/SR distribution. 
 % Subject in group B: key_B serves as the clear/babble key, key_A serves as
 %   the key of OR/SR distribution. 
-key_clear_bab = nan(8, 8);
+key_bab_clear = nan(8, 8);
 key_or_sr = nan(8, 8);
 for ii = 1:length(key_primes)
-    key_clear_bab(ii, :) = bab_clear(which_row(ii), :);
+    key_bab_clear(ii, :) = bab_clear(which_row(ii), :);
     key_or_sr(ii, :) = or_sr(which_row(ii), :);
 end
 
-key_clear_bab = reshape(key_clear_bab', [1, p.numSent]);
+key_bab_clear = reshape(key_bab_clear', [1, p.numSent]);
 key_or_sr = reshape(key_or_sr', [1, p.numSent]); 
 
 % SHUFFLE ORDER OF SENTENCE STRUCTURES
@@ -686,7 +686,7 @@ key_structures = Shuffle(1:8:p.numStim);
 % trials so that we can analyze the results from the first four trials of
 % each block and compare them to the results from the last four trials of
 % each block. 
-key_cb_os = key_clear_bab + key_or_sr; % combined clear/babble and or/sr
+key_cb_os = key_bab_clear + key_or_sr; % combined clear/babble and or/sr
 key_fem_male = nan(1, p.numSent);
 for ii = 1:8:p.numSent
     first_four = Shuffle([0 0 1 1]); 
@@ -696,28 +696,30 @@ for ii = 1:8:p.numSent
     temp_cb_os_2 = key_cb_os(ii+4:ii+7);
     second_four = nan(1, 4);
     for jj = 1:4
-        find(temp_cb_os_1(jj) == temp_cb_os_2)
-        second_four(jj) = 
+        second_four(jj) = ~first_four(temp_cb_os_2(jj) == temp_cb_os_1);
     end
+    
+    key_fem_male(ii+4:ii+7) = 2*second_four;
     
 end
 
 % COUNTERBALANCE SENTENCES 
-% In summary, I have counterbalanced the order of clear/babble (0, 1),
+% In summary, I have counterbalanced the order of babble/clear (0, 1),
 % female/male (0, 2), and OR/SR (0, 4) sentences. By adding all of these 
 % keys together, we get the order of events (key_events) for the 
 % experiment. Adding this to the order of sentence structures gives rise to
 % key_sent, the order of stimuli for this experiment. 
-key_events = key_clear_bab + key_or_sr + key_fem_male; 
-% 0 -- OF babble
-% 1 -- OF clear
-% 2 -- OM babble
-% 3 -- OM clear
-% 4 -- SF babble
-% 5 -- SF clear
-% 6 -- SM babble 
-% 7 -- SM clear
-
+key_events = key_bab_clear + key_or_sr + key_fem_male; 
+% C/B+F/M+O/S= # -- Event
+%  0 + 0 + 0 = 0 -- OF babble  
+%  1 + 0 + 0 = 1 -- OF clear 
+%  0 + 2 + 0 = 2 -- OM babble  
+%  1 + 2 + 0 = 3 -- OM clear 
+%  0 + 0 + 4 = 4 -- SF babble
+%  1 + 0 + 4 = 5 -- SF clear
+%  0 + 2 + 4 = 6 -- SM babble 
+%  1 + 2 + 4 = 7 -- SM clear
+key_sent = key_events + key_structures;
 
 % PRACTICE KEY
 % Creates one block for practice. Only uses four sentence structures over 8
@@ -732,19 +734,19 @@ function sentencecheck(key_sentences, p)
 % female, clear and babble sentences and makes sure they are all equal. 
 % Then, it makes sure that each block of sentences have one of each 
 % category. 
-obj    = []; 
-subj   = []; 
-male   = [];
+obj    = [];
+subj   = [];
 fem    = [];
-babble = [];
+male   = [];
 clear  = [];
-    
+babble = [];
+
 key_obj    = sort(horzcat(1:8:p.numStim, 2:8:p.numStim, 3:8:p.numStim, 4:8:p.numStim)); 
 key_subj   = sort(horzcat(5:8:p.numStim, 6:8:p.numStim, 7:8:p.numStim, 8:8:p.numStim)); 
 key_fem    = sort(horzcat(1:8:p.numStim, 2:8:p.numStim, 5:8:p.numStim, 6:8:p.numStim));
 key_male   = sort(horzcat(3:8:p.numStim, 4:8:p.numStim, 7:8:p.numStim, 8:8:p.numStim));
-key_babble = (1:2:p.numStim);
-key_clear  = (2:2:p.numStim);
+key_clear  = (1:2:p.numStim);
+key_babble = (2:2:p.numStim);
 
 % Pull out which sentences are male/fem, obj/subj, clear/babble
 for ii = 1:length(key_sentences)
@@ -760,10 +762,10 @@ for ii = 1:length(key_sentences)
         male = horzcat(male, key_sentences(ii));  %#ok<AGROW>
     end
     
-    if find(key_sentences(ii) == key_babble)
-        babble = horzcat(babble, key_sentences(ii));  %#ok<AGROW>
-    elseif find(key_sentences(ii) == key_clear)
+    if find(key_sentences(ii) == key_clear)
         clear = horzcat(clear, key_sentences(ii));  %#ok<AGROW>
+    elseif find(key_sentences(ii) == key_babble)
+        babble = horzcat(babble, key_sentences(ii));  %#ok<AGROW>
     end
 end
 

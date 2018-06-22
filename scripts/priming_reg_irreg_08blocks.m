@@ -255,7 +255,7 @@ pahandle = PsychPortAudio('Open', [], [], [], fs);
 % online, so I recommend reading RTBox.m and RTBoxdemo.m 
 RTBox('fake', 1);
 RTBox('UntilTimeout', 1);
-RTBox('ButtonNames', {'left', 'right', '3', '4'});
+RTBox('ButtonNames', {'left', 'right', 'space', '4'});
 
 % I convert the speaker image matrix into a texture at this point so the
 % experiment runs faster. 
@@ -661,14 +661,14 @@ end
 %   the key of OR/SR distribution. 
 % Subject in group B: key_B serves as the clear/babble key, key_A serves as
 %   the key of OR/SR distribution. 
-key_clear_bab = nan(8, 8);
+key_bab_clear = nan(8, 8);
 key_or_sr = nan(8, 8);
 for ii = 1:length(key_primes)
-    key_clear_bab(ii, :) = bab_clear(which_row(ii), :);
+    key_bab_clear(ii, :) = bab_clear(which_row(ii), :);
     key_or_sr(ii, :) = or_sr(which_row(ii), :);
 end
 
-key_clear_bab = reshape(key_clear_bab', [1, p.numSent]);
+key_bab_clear = reshape(key_bab_clear', [1, p.numSent]);
 key_or_sr = reshape(key_or_sr', [1, p.numSent]); 
 
 % SHUFFLE ORDER OF SENTENCE STRUCTURES
@@ -686,7 +686,7 @@ key_structures = Shuffle(1:8:p.numStim);
 % trials so that we can analyze the results from the first four trials of
 % each block and compare them to the results from the last four trials of
 % each block. 
-key_cb_os = key_clear_bab + key_or_sr; % combined clear/babble and or/sr
+key_cb_os = key_bab_clear + key_or_sr; % combined clear/babble and or/sr
 key_fem_male = nan(1, p.numSent);
 for ii = 1:8:p.numSent
     first_four = Shuffle([0 0 1 1]); 
@@ -704,21 +704,21 @@ for ii = 1:8:p.numSent
 end
 
 % COUNTERBALANCE SENTENCES 
-% In summary, I have counterbalanced the order of clear/babble (0, 1),
+% In summary, I have counterbalanced the order of babble/clear (0, 1),
 % female/male (0, 2), and OR/SR (0, 4) sentences. By adding all of these 
 % keys together, we get the order of events (key_events) for the 
 % experiment. Adding this to the order of sentence structures gives rise to
 % key_sent, the order of stimuli for this experiment. 
-key_events = key_clear_bab + key_or_sr + key_fem_male; 
+key_events = key_bab_clear + key_or_sr + key_fem_male; 
 % C/B+F/M+O/S= # -- Event
-%  0 + 0 + 0 = 0 -- OF clear  
-%  1 + 0 + 0 = 1 -- OF babble 
-%  0 + 2 + 0 = 2 -- OM clear  
-%  1 + 2 + 0 = 3 -- OM babble 
-%  0 + 0 + 4 = 4 -- SF clear
-%  1 + 0 + 4 = 5 -- SF babble
-%  0 + 2 + 4 = 6 -- SM clear 
-%  1 + 2 + 4 = 7 -- SM babble
+%  0 + 0 + 0 = 0 -- OF babble  
+%  1 + 0 + 0 = 1 -- OF clear 
+%  0 + 2 + 0 = 2 -- OM babble  
+%  1 + 2 + 0 = 3 -- OM clear 
+%  0 + 0 + 4 = 4 -- SF babble
+%  1 + 0 + 4 = 5 -- SF clear
+%  0 + 2 + 4 = 6 -- SM babble 
+%  1 + 2 + 4 = 7 -- SM clear
 key_sent = key_events + key_structures;
 
 % PRACTICE KEY
