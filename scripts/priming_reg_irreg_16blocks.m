@@ -688,8 +688,8 @@ key_structures = Shuffle(1:8:p.numStim);
 % are noise. The reason I use 5, 6, 9, and 10 is because I later convert 
 % these into binary vectors!
 
-% The following FOR loop counterbalances stimuli across the "superordinate"
-% categories of primes (i.e. reg/irreg/ambiance/silence). % This strange 
+% The following FOR loop counterbalances babble across the "superordinate"
+% categories of primes (i.e. reg/irreg/ambiance/silence). This strange 
 % Shuffle syntax ensures that the counterbalance matrices are shuffled 
 % across column and across row independently, thus preserving
 % counterbalance. 
@@ -701,6 +701,9 @@ for ii = 1:4
     % 9  -- OF and SM babble [1 0 0 1]
     % 10 -- OF and SF babble [1 0 1 0]
 end
+
+% The following FOR loop counterbalances the order of OR/SR sentences
+% across each block and each superordinate category. 
 
 idx_vec = [1 3 1 3 1 3 1 3];
 % The first two items in each cb_noise matrix are used to determine the
