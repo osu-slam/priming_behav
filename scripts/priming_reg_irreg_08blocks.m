@@ -111,10 +111,12 @@ if p.repPrimesPerExp ~= 2
     error('p.repPrimesPerExp is no longer 2, check counterbalancing!')
 elseif mod(p.blocks, 2) ~= 0
     error('p.blocks is not an even number, check counterbalancing!')
+elseif p.stimPerBlock ~= 8
+    error('p.stimPerBlock is no longer 8, check counterbalancing!')
 end
 
 % key_primes and key_sentences - order of primes and sentences
-load(fullfile(dir_stim, 'key_counterbalance.mat'))
+load(fullfile(dir_stim, 'key_counterbalance_v3.mat'))
 [key_primes, key_sent, key_pract] = generate_keys(subj, p, key_A, key_B);
 sentencecheck(key_sent, p)
 % For the sake of readability I moved all of this code into functions
@@ -597,7 +599,8 @@ save(results_mat, 'data_mat');
 function [key_primes, key_sent, key_pract] = generate_keys(subj, p, key_A, key_B)
 % Output 
 % key_primes: key containing counterbalanced order of primes. 
-% key_sentences: key containing counterbalanced order of sentences. 
+% key_sent: key containing counterbalanced order of sentences. 
+% key_pract: key containing order of sentences for practice. 
 
 % COUNTERBALANCE ORDER OF PRIMES
 % Participants can be a member of set A or set B. Set A starts with a
@@ -606,7 +609,8 @@ function [key_primes, key_sent, key_pract] = generate_keys(subj, p, key_A, key_B
 % baseline block and alternates with rhythm blocks. Alternating rhythm and
 % baseline blocks ensures that there are no contamination effects from
 % repeating rhythm blocks. The first row represents the type of prime, and
-% the second row helps counterbalance clear/babble and OR/SR. 
+% the second row helps counterbalance clear/babble and OR/SR, described 
+% below. 
 key_primes = nan(1, p.blocks);
 which_row = nan(1, p.blocks);
 cb_irr_reg = Shuffle([1 1 2 2; 1 2 3 4], 1);
@@ -616,12 +620,10 @@ cb_env_sil = Shuffle([3 3 4 4; 5 6 7 8], 1);
 % 3 - Environmental/Ambience sound prime
 % 4 - Silent prime
 
-
 % Set the first block as rhythm or baseline depending on whether subject is
 % in set A or set B
 if strcmp(subj.set, 'A')
-    bab_clear = key_A; % COUNTERBALANCE BABBLE/CLEAR (SEE BELOW)
-    or_sr = 4*key_B;   % COUNTERBALANCE OR/SR (SEE BELOW)
+    bc_os = key_A; % COUNTERBALANCE BABBLE/CLEAR AND OR/SR (SEE BELOW)
     for ii = 1:p.blocks/2
         key_primes(2*ii-1) = cb_irr_reg(1, ii);
         key_primes(2*ii)   = cb_env_sil(1, ii);
@@ -636,8 +638,7 @@ if strcmp(subj.set, 'A')
     end
     
 elseif strcmp(subj.set, 'B')
-    bab_clear = key_B; 
-    or_sr = 4*key_A;   
+    bc_os = key_B; 
     for ii = 1:p.blocks/2
         key_primes(2*ii-1) = cb_env_sil(1, ii);
         key_primes(2*ii)   = cb_irr_reg(1, ii);
@@ -647,29 +648,45 @@ elseif strcmp(subj.set, 'B')
     
 end
 
-% COUNTERBALANCE BABBLE/CLEAR and OR/SR
+% COUNTERBALANCE BABBLE/CLEAR AND OR/SR
 % To test for the effect of the decay of priming effect, the order of
 % sentence presentation has to be rigorously counterbalanced. However,
 % since there are four main conditions of each sentence (OR_clear,
 % SR_clear, OR_babble, SR_babble) and only two presetations of each prime
-% per subject, it is necessary to divide subjects into two groups and to
+% per subject, we decided to divide subjects into two groups and to
 % counterbalance across groups. I pre-counterbalanced accordingly and saved
-% them in the file key_counterbalance.mat, which contains variables key_A 
-% and key_B. These two files are used to counterbalance the order of 
-% stimuli as follows:
-% Subject in group A: key_A serves as the clear/babble key, key_B serves as
-%   the key of OR/SR distribution. 
-% Subject in group B: key_B serves as the clear/babble key, key_A serves as
-%   the key of OR/SR distribution. 
-key_bab_clear = nan(8, 8);
-key_or_sr = nan(8, 8);
+% them in the file key_counterbalance_v3.mat, which contains variables 
+% key_A and key_B. These two files are used to counterbalance the order of 
+% stimuli and have been balanced. Each row represents an instance of a
+% given prime and is ordered as follows: 
+% Row 1 -- complex1
+% Row 2 -- complex2
+% Row 3 -- regular1
+% Row 4 -- regular2
+% Row 5 -- ambiance1
+% Row 6 -- ambiance2
+% Row 7 -- silence1
+% Row 8 -- silence2
+% The vector called which_row from earlier shuffles the order of 
+% presentation of each counterbalanced block. For better visualization, see
+% counterbalance_v3.xlsx in the \docs folder. Note that the numbers in each
+% element of key_A and key_B may seem arbitrary. I promise, it will make
+% sense in the end, but the organization is as follows:
+% 0 -- Object-relative babble
+% 1 -- Object-relative clear
+% 4 -- Subject-relative babble
+% 5 -- Subject-relative clear
+% Later on in the code, I add a carefully balanced vector of zeros and twos
+% to represent the shuffled male/female conditions. 
+key_bc_os = nan(p.stimPerBlock, p.blocks);
 for ii = 1:length(key_primes)
-    key_bab_clear(ii, :) = bab_clear(which_row(ii), :);
-    key_or_sr(ii, :) = or_sr(which_row(ii), :);
+    key_bc_os(ii, :) = bc_os(which_row(ii), :);
 end
+% The above loop transforms the matrix bc_os (which is either key_A or
+% key_B depending on the subject) from its organized form to its shuffled
+% form. 
 
-key_bab_clear = reshape(key_bab_clear', [1, p.numSent]);
-key_or_sr = reshape(key_or_sr', [1, p.numSent]); 
+key_bc_os = reshape(key_bc_os', [1, p.numSent]);
 
 % SHUFFLE ORDER OF SENTENCE STRUCTURES
 % Each sentence structure (e.g. ___ who kiss ___ are happy) has four
@@ -678,47 +695,54 @@ key_or_sr = reshape(key_or_sr', [1, p.numSent]);
 % auditory conditions (clear and babble). Therefore, there are 4x2 = 8
 % different sentences for each structure. These can be indexed by the 
 % following vector, which is shuffled across all trials:
-key_structures = Shuffle(1:8:p.numStim);
+key_structures = Shuffle(1:p.stimPerBlock:p.numStim);
 
 % COUNTERBALANCE MALE/FEMALE
 % Although this manipulation is present only to distract subjects from the
-% OR/SR component of the task, it must be counterbalanced across every four
-% trials so that we can analyze the results from the first four trials of
-% each block and compare them to the results from the last four trials of
-% each block. 
-key_cb_os = key_bab_clear + key_or_sr; % combined clear/babble and or/sr
+% OR/SR component of the task, it must be counterbalanced across every
+% block. Prior to this This proved surprisingly difficult to execute--if I 
+% were to simply shuffle a vector of 0s and 2s, it is possible for one
+% block to contain duplicate sentence constructions. 
 key_fem_male = nan(1, p.numSent);
-for ii = 1:8:p.numSent
-    first_four = Shuffle([0 0 1 1]); 
-    key_fem_male(ii:ii+3) = 2*first_four; 
+for ii = 1:p.stimPerBlock:p.numSent
+    % Randomly shuffle the first four trials...
+    temp = Shuffle([0 0 0 0 1 1 1 1]); 
+    first_four_fm = temp(1:4); 
     
-    temp_cb_os_1 = key_cb_os(ii:ii+3);
-    temp_cb_os_2 = key_cb_os(ii+4:ii+7);
-    second_four = nan(1, 4);
+    % Determine what the last four trials must be so that the entire block
+    % is counterbalanced
+    last_four_fm  = nan(1, 4);
+    first_four_cb_os = key_bc_os(ii:ii+3);
+    last_four_cb_os  = key_bc_os(ii+4:ii+7); 
     for jj = 1:4
-        second_four(jj) = ~first_four(temp_cb_os_2(jj) == temp_cb_os_1);
+        last_four_fm(first_four_cb_os(jj) == last_four_cb_os) = ~first_four_fm(jj);        
     end
-    
-    key_fem_male(ii+4:ii+7) = 2*second_four;
+
+    % Convert from logicals (1s and 0s) to 2s and 0s. I swear, this makes
+    % sense in the end...
+    key_fem_male(ii:ii+3)   = 2*first_four_fm; 
+    key_fem_male(ii+4:ii+7) = 2*last_four_fm; 
     
 end
 
+key_events = key_bc_os + key_fem_male; 
+
 % COUNTERBALANCE SENTENCES 
-% In summary, I have counterbalanced the order of babble/clear (0, 1),
-% female/male (0, 2), and OR/SR (0, 4) sentences. By adding all of these 
-% keys together, we get the order of events (key_events) for the 
-% experiment. Adding this to the order of sentence structures gives rise to
-% key_sent, the order of stimuli for this experiment. 
-key_events = key_bab_clear + key_or_sr + key_fem_male; 
-% C/B+F/M+O/S= # -- Event
-%  0 + 0 + 0 = 0 -- OF babble  
-%  1 + 0 + 0 = 1 -- OF clear 
-%  0 + 2 + 0 = 2 -- OM babble  
-%  1 + 2 + 0 = 3 -- OM clear 
-%  0 + 0 + 4 = 4 -- SF babble
-%  1 + 0 + 4 = 5 -- SF clear
-%  0 + 2 + 4 = 6 -- SM babble 
-%  1 + 2 + 4 = 7 -- SM clear
+% In summary, I have counterbalanced the order sentences according to 
+% babble/clear and OR/SR (0, 1, 4, 5) as well as female/male (0, 2). By 
+% adding all of these keys together, we get the order of events 
+% (key_events) for the experiment. Adding this to the order of sentence 
+% structures gives rise to key_sent, the order of stimuli for this 
+% experiment. 
+% (C/B and O/S) + M/F = # -- Event
+%      (0)      +  0  = 0 -- OF babble  
+%      (1)      +  0  = 1 -- OF clear 
+%      (0)      +  2  = 2 -- OM babble  
+%      (1)      +  2  = 3 -- OM clear 
+%      (4)      +  0  = 4 -- SF babble
+%      (5)      +  0  = 5 -- SF clear
+%      (4)      +  2  = 6 -- SM babble 
+%      (5)      +  2  = 7 -- SM clear
 key_sent = key_events + key_structures;
 
 % PRACTICE KEY
