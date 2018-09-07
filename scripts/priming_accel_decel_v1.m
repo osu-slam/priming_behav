@@ -474,24 +474,24 @@ try
         KbQueueStart
         primeStart(blk) = PsychPortAudio('Start', pahandle, [], primeStartTarget, 1);
         
-        DrawFormattedText(wPtr, '3', 'center', 'center', 255);
-        Screen('Flip', wPtr);
+%         DrawFormattedText(wPtr, '3', 'center', 'center', 255);
+%         Screen('Flip', wPtr);
         
-        DrawFormattedText(wPtr, '2', 'center', 'center', 255);
+%         DrawFormattedText(wPtr, '2', 'center', 'center', 255);
         WaitTill(countdown_flip(1));
-        Screen('Flip', wPtr);
+%         Screen('Flip', wPtr);
         
-        DrawFormattedText(wPtr, '1', 'center', 'center', 255);
+%         DrawFormattedText(wPtr, '1', 'center', 'center', 255);
         WaitTill(countdown_flip(2));
-        Screen('Flip', wPtr);
+%         Screen('Flip', wPtr);
         
-        DrawFormattedText(wPtr, 'GO!', 'center', 'center', 255);
+%         DrawFormattedText(wPtr, 'GO!', 'center', 'center', 255);
         WaitTill(countdown_flip(3));
-        Screen('Flip', wPtr);
+%         Screen('Flip', wPtr);
         
-        Screen('DrawTexture', wPtr, speaker_tex);
+%         Screen('DrawTexture', wPtr, speaker_tex);
         WaitTill(countdown_flip(4));
-        Screen('Flip', wPtr);
+%         Screen('Flip', wPtr);
         
         while GetSecs() < primeEnd 
             [keyIsDown, timeAndKey] = KbQueueCheck;

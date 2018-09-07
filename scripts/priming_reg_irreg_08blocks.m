@@ -324,22 +324,22 @@ if ~NoTutorial
     % Practice block
     while 1
         correct = 0;
-        
+
         % Present practice prime (environmental sounds)
         DrawFormattedText(wPtr, 'You will now hear ambiance.\nPlease stare at the icon\nin the center of the screen.', 'center', 'center', 255);
         Screen('Flip', wPtr);
-        
+
         primeStartTarget = GetSecs() + 4; % Start trial 4 seconds from now. 
         % These extra 2 second lets PTB fill the buffer, mark the end of 
         % the stimuli, start the KbQueue
         primeEnd = primeStartTarget + dur_primes(3);
-        
+
         PsychPortAudio('FillBuffer', pahandle, audio_primes{3});
         PsychPortAudio('Start', pahandle, [], primeStartTarget, 1);
         Screen('DrawTexture', wPtr, speaker_tex);
         Screen('Flip', wPtr);
         WaitTill(primeEnd);
-        
+
         DrawFormattedText(wPtr, '!!!', 'center', 'center', 255);
         Screen('Flip', wPtr);
         WaitTill(GetSecs() + 0.5);
@@ -403,7 +403,7 @@ if ~NoTutorial
         end
 
     end
-    
+
 end
 
 DrawFormattedText(wPtr, 'Press space to begin.', 'center', 'center', 255);

@@ -1,0 +1,8 @@
+%% NOTES ON THE PROCESS TO NORMALIZE RMS FOR STIMULI
+The end goal of normalization was to ensure that each stimuli is equally as loud. 
+Importantly, the scripts that added the multitalker babble noise mix the two tracks
+in a way that preserves the original gain of the signal (i.e. sentences) and titrates
+the babble to the correct intensity to create a given SNR ratio. To preserve this
+gain, I first equalized the RMS of the sentences without babble. Then, I added the 
+multitalker babble. Lastly, I adjusted the RMS of the primes and practice sentences
+to match the RMS of these new multitalker sentences. 
