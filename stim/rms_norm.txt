@@ -1,0 +1,3 @@
+Sequence of events to RMS normalize stim:
+1) RMS Normalize all clear speech. This serves as the target RMS for all stim.
+2) Match RMS of all other files to the clear speech. 

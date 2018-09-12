@@ -3,7 +3,7 @@ This experiment has two components.\n\n(Press space to continue)
 First, you will hear some music, ambiance, or silence.\nPlease stare straight ahead while the sound or silence plays,\nand refrain from tapping your fingers or feet along with\nthe music.
 Immediately after the end of the music, ambiance,\nor silence, you will hear a series of sentences.\nPress space to listen:
 Press space to continue.
-Sometimes the sentence will be spoken in a quiet environment,\nand other times it will be spoken in a loud environment.\nPress space to listen:
+In some blocks the sentence will be spoken in a quiet environment,\nand other times it will be spoken in a loud environment.\nPress space to listen:
 Press space to continue.
 Listen carefully to each sentence and pay\nattention to *who* is performing the action.\n\nEven though it may be difficult to understand,\ndo NOT adjust the volume of the speakers!
 Men that approach women are outgoing.\n\nWho is performing the action?
@@ -16,6 +16,6 @@ Since PRINCESSES are doing the rescuing, the\nanswer is FEMALE.
 Princesses that princes rescue are charming.\n\nWhat is the gender of the person performing\nthe action?
 Since PRINCES are doing the rescuing, the\nanswer is MALE.
 If the gender of the person performing the action is MALE,\npress the RIGHT arrow key.\n\nIf the gender of the person performing the action is FEMALE,\npress the LEFT arrow key.
-Let's do a practice block.\n\nDuring the practice, you will be told if you were right or wrong.\n\nYou will have 5 seconds to respond each trial.
+Let's do a practice block.\n\nDuring the practice, you will hear both types of sentences.\nYou will be told if you were right or wrong.\n\nYou will have 5 seconds to respond each trial.
 Great job! You answered %s out of 6 sentences\ncorrectly.\n\nPress the left arrow key to repeat the practice block,\nor press space to start the main experiment.
 Now let's move onto the real experiment. You\nwill not be told if you are right or wrong\nafter each sentence.\n\nGood luck!\nPress space to start.
