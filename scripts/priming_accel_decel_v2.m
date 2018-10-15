@@ -1,6 +1,6 @@
-%% priming_reg_irreg_v2
+%% priming_accel_decel_v2
 % Code used to run the priming behavioral experiment. Consists of 8 blocks
-% where a prime (regular/irregular rhythm, or environmental/silent
+% where a prime (accelerating/decelerating pulse, or constant/silent
 % baseline) is followed by fuzzy speech task using babble speech. To 
 % administer, press Run, fill out subject information, and guide the 
 % participant through the instructions. Stimuli have already been RMS
@@ -11,25 +11,21 @@
 % CHANGELOG (MM/DD/YY)
 % 04/25/18 -- Began coding experiment. -- MH
 % 04/27/18 -- Finished coding v1, still need to finalize stim. -- MH
-% 05/03/18 -- Finished stimuli, code is complete!
-% 06/05/18 -- Changed instructions and tutorials. Started V2 with a
-%   different structure to blocks. 
-% 06/18/18 -- Updated instructions. 
-% 06/20/18 -- Fixing bug in counterbalancing. 
-% 08/28/18 -- Pilot data (n = 15) is collected, not seeing expected trends.
-%   Made the following changes:
-%   1)  New priming stimuli based on (Przybylski et al., 2013). 
-%   2)  Changed from 8 to 6 events per block to save time. 
+% 05/03/18 -- Finished stimuli, code is complete! -- MH
+% 05/04/18 -- Cloned accelerating/decelerating version. -- MH
+% 06/04/18 -- Updated stimuli and made some small updates to the flow of
+%   the experiment. Added countdown before the start of the metronome, 
+%   edited instructions. 
+% 10/11/18 -- Updating for Toronto team, to match reg_irreg_v2:
+%   1)  Changed from 8 to 6 events per block to save time. 
 %   3)  New practice stimuli. 
 %   4)  Changed how stimuli is pathed, updated stimuli loading to reflect
 %       this. 
 %   5)  Added SNR -4 stimuli. 
 %   6)  Added new parameter to more easily facilitate switching between
 %       stimuli of different SNR. 
-% 09/11/18 -- Updated stimuli from silence to pure tone based on average
-%   frequency of the ambiance condition (389.365 Hz). Pitch was found using
-%   Audacity Nyquist prompt. Also updated counterbalancing. Still works on
-%   an A/B paradigm, but now sentences are counterbalanced differently. 
+%   7)  Also updated stimuli from silence to pure tone (440.000 Hz). Pitch
+%       matches the metronome. 
 
 sca; DisableKeysForKbCheck([]); KbQueueStop; clc;
 clearvars;
@@ -74,6 +70,7 @@ p.repPrimesPerExp = 2; % primes per block
 % added a test to ensure that p.repPrimesPerExp is 2.
 
 p.stimPerBlock = 6; % number of sentences in each block
+p.stimPerBlock = 6; % number of sentences in each block
 p.stimPerExp = p.blocks * p.stimPerBlock;
 p.numSent = 48; % number of sentence structures
 p.numStim = 384; % number of sentence .wav files
@@ -97,17 +94,17 @@ dir_exp  = pwd;
 dir_docs = fullfile(pwd, 'docs');
 dir_results = fullfile(pwd, 'results');
 dir_stim = fullfile(pwd, 'stim'); 
-dir_stim_primes = fullfile(pwd, 'stim', 'primes_reg_irreg_08blocks');
+dir_stim_primes = fullfile(pwd, 'stim', 'primes_accel_decel_v2');
 dir_stim_pract  = fullfile(pwd, 'stim', 'practice');
 
 % A quick bit of sanitation to make it easier to find subject data based on
 % subject number... 
 if subj.num < 10
-    results_tag = ['00' num2str(subj.num) '_' subj.init '_priming_reg_irreg_08blocks_' date];
+    results_tag = ['00' num2str(subj.num) '_' subj.init '_priming_accel_decel_' date];
 elseif subj.num < 100
-    results_tag = ['0' num2str(subj.num) '_' subj.init '_priming_reg_irreg_08blocks_' date];
+    results_tag = ['0' num2str(subj.num) '_' subj.init '_priming_accel_decel_' date];
 elseif subj.num < 1000
-    results_tag = [num2str(subj.num) '_' subj.init '_priming_reg_irreg_08blocks_' date];
+    results_tag = [num2str(subj.num) '_' subj.init '_priming_accel_decel_' date];
 else
     err('Files will not save with correct name. Check subject number')
 end
@@ -122,8 +119,8 @@ cd(dir_results)
 files = dir(results_mat); % Checks if any files share a name
 if ~isempty(files)
     results_tag = [results_tag '_run' num2str(length(files)+1)];
-    results_xls = fullfile(dir_results, [results_tag, '.xlsx']);
-    results_mat = fullfile(dir_results, [results_tag, '.mat']);
+    results_xls = fullfile(dir_stim_sent, [results_tag, '.xlsx']);
+    results_mat = fullfile(dir_stim_sent, [results_tag, '.mat']);
 end
 cd(dir_exp)
 
@@ -336,7 +333,7 @@ speaker_tex = Screen('MakeTexture', wPtr, speaker_mat);
 %% Finish preparing for experiment, run instructions
 if ~NoTutorial
 % Read in each line of instructions
-    inst_file = fullfile(dir_docs, 'instructions_regirreg_08blocks_v2.txt');
+    inst_file = fullfile(dir_docs, 'instructions_acceldecel_v2.txt');
     fid = fopen(inst_file);
     ii = 1;
     while 1
@@ -393,23 +390,46 @@ if ~NoTutorial
 
     % Practice block
     while 1
-        correct = 0;
-
-        % Present practice prime (environmental sounds)
-        DrawFormattedText(wPtr, 'You will now hear ambiance.\nPlease stare at the icon\nin the center of the screen.', 'center', 'center', 255);
+        correct = 0; % Reset counter
+        
+        % Present practice prime (constant metronome)
+        DrawFormattedText(wPtr, 'You will now hear a metronome.\nPlease tap along using the space bar\nonce the countdown has ended.', 'center', 'center', 255);
         Screen('Flip', wPtr);
-
-        primeStartTarget = GetSecs() + 4; % Start trial 4 seconds from now. 
-        % These extra 4 second lets PTB fill the buffer, mark the end of 
+        
+        % Preallocate variables
+        countdown_flip = [0.8 1.6 2.4 3.2]; % runs countdown
+        
+        primeStartTarget = GetSecs() + 5; % Start trial 5 second from now. 
+        % These extra 5 second lets PTB fill the buffer, mark the end of 
         % the stimuli, start the KbQueue
-        primeEnd = primeStartTarget + dur_primes(3);
-
-        PsychPortAudio('FillBuffer', pahandle, audio_primes{3});
+        primeEnd = primeStartTarget + dur_primes(key_primes(2));
+        countdown_flip = countdown_flip + primeStartTarget;
+        
+        PsychPortAudio('FillBuffer', pahandle, audio_primes{5});
+        idx = 1;
         PsychPortAudio('Start', pahandle, [], primeStartTarget, 1);
-        Screen('DrawTexture', wPtr, speaker_tex);
+        
+        DrawFormattedText(wPtr, '3', 'center', 'center', 255);
         Screen('Flip', wPtr);
+        
+        DrawFormattedText(wPtr, '2', 'center', 'center', 255);
+        WaitTill(countdown_flip(1));
+        Screen('Flip', wPtr);
+        
+        DrawFormattedText(wPtr, '1', 'center', 'center', 255);
+        WaitTill(countdown_flip(2));
+        Screen('Flip', wPtr);
+        
+        DrawFormattedText(wPtr, 'GO!', 'center', 'center', 255);
+        WaitTill(countdown_flip(3));
+        Screen('Flip', wPtr);
+        
+        Screen('DrawTexture', wPtr, speaker_tex);
+        WaitTill(countdown_flip(4));
+        Screen('Flip', wPtr);
+        
         WaitTill(primeEnd);
-
+        
         DrawFormattedText(wPtr, '!!!', 'center', 'center', 255);
         Screen('Flip', wPtr);
         WaitTill(GetSecs() + 0.5);
@@ -455,7 +475,7 @@ if ~NoTutorial
         WaitSecs(0.5);
         RTBox('Clear');
         [~, cont] = RTBox(inf);
-        if strcmp(cont, 'space')
+        if strcmp(cont, 'right')
             DrawFormattedText(wPtr, inst_lines{21}, 'center', 'center', 255);
             Screen('Flip', wPtr);
             WaitTill(GetSecs + 0.5);
@@ -473,7 +493,7 @@ if ~NoTutorial
         end
 
     end
-
+    
 end
 
 DrawFormattedText(wPtr, 'Press space to begin.', 'center', 'center', 255);
@@ -483,25 +503,86 @@ RTBox(inf);
 
 %% ACTUAL EXPERIMENT %% 
 % Preallocating variables
+for ii = 1:p.blocks
+    thisfield = ['block', num2str(ii)];
+    pulse.(thisfield) = []; % Preallocate pulse struct
+end
+pulse_fields = fields(pulse);
+
 answer = cell(1, p.numSent);
 resp = nan(1, p.numSent);
 eventEnd = nan(1, p.numSent);
+
+primeStart = nan(1, p.blocks);
 evt = 1; % Index will increase after each trial
 
 try
-    for blk = 1:p.blocks
+    for blk = 1:p.blocks        
         %% Present prime
         DrawFormattedText(wPtr, '!!!', 'center', 'center', 255);
         Screen('Flip', wPtr);
-        WaitTill(GetSecs() + 1); 
-        Screen('DrawTexture', wPtr, speaker_tex);
-        Screen('Flip', wPtr);
-        primeEnd = GetSecs() + dur_primes(key_primes(blk));
+        
+        % Preallocate variables
+        pulse_temp = nan(1, 100); % stores subject response
+        
+        if key_primes(blk) == 1 %% Accelerating
+            countdown_flip = [1 1.986 2.958 3.916]; % cues when to display the countdown. 
+        elseif any(key_primes(blk) == [2 4]) %% Constant or silent
+            countdown_flip = [0.5 1 1.5 2];
+        elseif key_primes(blk) == 3 %% Decelerating
+            countdown_flip = [0.3 0.614 0.942 1.284];
+        end
+        
+        primeStartTarget = GetSecs() + 2; % Start trial 1 second from now. 
+        % These extra 2 second lets PTB fill the buffer, mark the end of 
+        % the stimuli, start the KbQueue
+        primeEnd = primeStartTarget + dur_primes(key_primes(blk));
+        countdown_flip = countdown_flip + primeStartTarget;
+        
         PsychPortAudio('FillBuffer', pahandle, audio_primes{key_primes(blk)});
-        PsychPortAudio('Start', pahandle);
-
-        WaitTill(primeEnd + 0.1); 
+        idx = 1;
+        KbQueueCreate
+        KbQueueStart
+        primeStart(blk) = PsychPortAudio('Start', pahandle, [], primeStartTarget, 1);
+        
+        DrawFormattedText(wPtr, '3', 'center', 'center', 255);
         Screen('Flip', wPtr);
+        
+        DrawFormattedText(wPtr, '2', 'center', 'center', 255);
+        WaitTill(countdown_flip(1));
+        Screen('Flip', wPtr);
+        
+        DrawFormattedText(wPtr, '1', 'center', 'center', 255);
+        WaitTill(countdown_flip(2));
+        Screen('Flip', wPtr);
+        
+        DrawFormattedText(wPtr, 'GO!', 'center', 'center', 255);
+        WaitTill(countdown_flip(3));
+        Screen('Flip', wPtr);
+        
+        Screen('DrawTexture', wPtr, speaker_tex);
+        WaitTill(countdown_flip(4));
+        Screen('Flip', wPtr);
+        
+        while GetSecs() < primeEnd 
+            [keyIsDown, timeAndKey] = KbQueueCheck;
+            if keyIsDown
+                pulse_temp(idx) = timeAndKey(32); 
+                % Using a temp variable might save time?
+                % Also note that 32 is the keycode for space. Any other key
+                % press is effectively ignored. 
+                idx = idx + 1;
+            end
+            
+        end
+        
+        KbQueueRelease % Ends recording of subject response. 
+        
+        pulse.(pulse_fields{blk}) = pulse_temp;
+        
+        DrawFormattedText(wPtr, '!!!', 'center', 'center', 255);
+        Screen('Flip', wPtr);
+        
         WaitTill(GetSecs() + 0.5);
         
         %% Present sentences
@@ -558,18 +639,36 @@ rethrow(err)
     
 end
 
-
 %% Close the experiment and save data
 % If the experiment does not encounter any errors, then this section is
 % responsible for saving the output. 
 sca
 PsychPortAudio('Close');
 
-rt = resp - eventEnd;
+rt        = resp - eventEnd;
 data_cell = cell(p.numSent + 1, 7);
 data_mat  = nan(p.numSent, 7);
 
-% This is the format for the columns of data_cell and data_mat. 
+% Remove nans from pulse data and convert from absolute to time relative to
+% start of pulse
+for ii = 1:length(pulse_fields)
+    % Screen out zeros, which are incorrect key presses. 
+    tempPulse = pulse.(pulse_fields{ii})(pulse.(pulse_fields{ii}) > 0); 
+    
+    % Screen out NaNs, which are unused preallocated spots in the variable. 
+    pulse.(pulse_fields{ii}) = tempPulse(~isnan(tempPulse)); 
+    
+    tempPulseStart = repmat(primeStart(ii), 1, length(pulse.(pulse_fields{ii})));
+    pulse_rel.(pulse_fields{ii}) = pulse.(pulse_fields{ii}) - tempPulseStart;
+    for jj = 2:length(pulse_rel.(pulse_fields{ii}))
+        pulse_dt.(pulse_fields{ii})(jj-1) = pulse_rel.(pulse_fields{ii})(jj) - pulse_rel.(pulse_fields{ii})(jj-1);
+    end
+    
+end
+
+% This is the format for the columns of the behavioral data within 
+% data_cell and data_mat. The pulse data saves within data_mat as a series
+% of structures. 
 data_cell{1, 1} = 'Prime';
 data_cell{1, 2} = 'Sentence';
 data_cell{1, 3} = 'Obj/Subj';
@@ -588,7 +687,7 @@ data_cell{1, 7} = 'Reaction time'; % Is inf if subject timed out
 %                 event (i.e. 1 through 64)
 % OBJ/SUBJ     -- 1:OR sentence
 %                 2:SR sentence
-% CLEAR/BABBLE -- 1:Babble sentence (filenames end with a number)
+% CLEAR/BABBLE -- 1:Babble sentence (filenames start with a number)
 %                 2:Clear sentence
 % SUBJ RESP    -- 0:No response/subject timed out
 %                 1:Left
@@ -599,9 +698,9 @@ data_cell{1, 7} = 'Reaction time'; % Is inf if subject timed out
 %                 Inf represents that subject timed out. 
 
 idx = 1;
-for ii = 1:p.stimPerBlock:p.numSent
+for ii = 1:8:p.numSent
     data_cell{ii+1, 1} = stim_primes(key_primes(idx)).name;
-    data_mat(ii:ii+p.stimPerBlock-1, 1) = key_primes(idx);
+    data_mat(ii:ii+8, 1) = key_primes(idx);
     idx = idx + 1;
 end
 
@@ -668,7 +767,7 @@ end
 xlswrite(results_xls, data_cell);
 
 % Save as .mat for easy analysis
-save(results_mat, 'data_mat');
+save(results_mat, 'data_mat', 'pulse_rel', 'pulse_dt');
 
 % OPTIONAL - Save all variables for subject just in case you need them
 % save(results_all);
@@ -695,21 +794,21 @@ function [key_primes, key_sent, key_pract] = generate_keys(subj, p, key_A)
 % below. 
 key_primes = nan(1, p.blocks);
 babble_clear = nan(1, p.blocks);
-cb_irr_reg = Shuffle([1 1 2 2; 0 1 0 1], 1);
-cb_env_sil = Shuffle([3 3 4 4; 0 1 0 1], 1);
-% 1 - Irregular/Complex prime
-% 2 - Regular/Simple prime
-% 3 - Environmental/Ambience sound prime
-% 4 - Silent prime
+cb_acc_dec = Shuffle([1 1 3 3; 0 1 0 1], 1);
+cb_cop_cot = Shuffle([2 2 4 4; 0 1 0 1], 1);
+% 1 - Accelerating prime
+% 2 - Constant pulse prime
+% 3 - Decelerating prime
+% 4 - Constant tone prime
 
 % Set the first block as rhythm or baseline depending on whether subject is
 % in set A or set B
 if strcmp(subj.set, 'A')
     for ii = 1:p.blocks/2
-        key_primes(2*ii-1) = cb_irr_reg(1, ii);
-        key_primes(2*ii)   = cb_env_sil(1, ii);
-        babble_clear(2*ii-1)  = cb_irr_reg(2, ii);
-        babble_clear(2*ii)    = cb_env_sil(2, ii);
+        key_primes(2*ii-1) = cb_acc_dec(1, ii);
+        key_primes(2*ii)   = cb_cop_cot(1, ii);
+        babble_clear(2*ii-1)  = cb_acc_dec(2, ii);
+        babble_clear(2*ii)    = cb_cop_cot(2, ii);
 %         % Note that 2*ii-1 indicates the odd-numbered blocks (1, 3, 5, 7), 
 %         % whereas 2*ii indicates the even-numbered blocks (2, 4, 6, 8). I
 %         % use this trick because there is a dimension mismatch between
@@ -720,10 +819,10 @@ if strcmp(subj.set, 'A')
     
 elseif strcmp(subj.set, 'B')
     for ii = 1:p.blocks/2
-        key_primes(2*ii-1) = cb_env_sil(1, ii);
-        key_primes(2*ii)   = cb_irr_reg(1, ii);
-        babble_clear(2*ii-1)  = cb_env_sil(2, ii);
-        babble_clear(2*ii)    = cb_irr_reg(2, ii);
+        key_primes(2*ii-1) = cb_cop_cot(1, ii);
+        key_primes(2*ii)   = cb_acc_dec(1, ii);
+        babble_clear(2*ii-1)  = cb_cop_cot(2, ii);
+        babble_clear(2*ii)    = cb_acc_dec(2, ii);
     end
     
 end
