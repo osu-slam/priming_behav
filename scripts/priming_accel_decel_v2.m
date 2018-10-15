@@ -266,7 +266,7 @@ for jj = 1:2
     stim_pract{jj} = dir('*.wav'); 
     
     fs = nan(1, length(stim_pract{jj}));
-    info_pract(length(stim_pract{jj})) = audioinfo(stim_pract{jj}(end).name); % Preallocate structure size
+    info_pract(length(stim_pract{jj})) = audioinfo(stim_pract{jj}(end).name); %#ok<SAGROW> % Preallocate structure size
     
     idx = jj; 
     for ii = 1:length(stim_pract{jj})
@@ -316,7 +316,7 @@ centerY = rect(4)/2;
 HideCursor(); 
 Screen('TextSize', wPtr, textSize);
 
-pahandle = PsychPortAudio('Open', [], [], [], fs);
+pahandle = PsychPortAudio('Open', 1, [], [], fs);
 
 % RTBox is used to collect subject response and maintain timing of the
 % experiment. It was originally designed for use in MRI, but I prefer to
@@ -406,7 +406,6 @@ if ~NoTutorial
         countdown_flip = countdown_flip + primeStartTarget;
         
         PsychPortAudio('FillBuffer', pahandle, audio_primes{5});
-        idx = 1;
         PsychPortAudio('Start', pahandle, [], primeStartTarget, 1);
         
         DrawFormattedText(wPtr, '3', 'center', 'center', 255);
@@ -475,7 +474,7 @@ if ~NoTutorial
         WaitSecs(0.5);
         RTBox('Clear');
         [~, cont] = RTBox(inf);
-        if strcmp(cont, 'right')
+        if strcmp(cont, 'space')
             DrawFormattedText(wPtr, inst_lines{21}, 'center', 'center', 255);
             Screen('Flip', wPtr);
             WaitTill(GetSecs + 0.5);
