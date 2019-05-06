@@ -49,7 +49,7 @@ catch
 end
 
 InitializePsychSound
-AudioDevice = PsychPortAudio('GetDevices', 3); 
+AudioDevice = PsychPortAudio('GetDevices'); 
 
 %% Collect subject information
 prompt = { ...
@@ -700,10 +700,10 @@ key_primes = nan(1, p.blocks);
 babble_clear = nan(1, p.blocks);
 cb_irr_reg = Shuffle([1 1 2 2; 0 1 0 1], 1);
 cb_env_sil = Shuffle([3 3 4 4; 0 1 0 1], 1);
-% 1 - Irregular/Complex prime
-% 2 - Regular/Simple prime
-% 3 - Environmental/Ambience sound prime
-% 4 - Silent prime
+% 1 - Ambient prime
+% 2 - Slow prime
+% 3 - Medium prime
+% 4 - Fast prime
 
 % Set the first block as rhythm or baseline depending on whether subject is
 % in set A or set B
@@ -884,13 +884,14 @@ elseif (length(ch24) ~= length (ch15))
 end
 
 % Check evert two blocks of sentences for balance
-block = 1;
-for ii = 1:2*p.stimPerBlock:length(key_sentences)
-    temp = key_sentences(ii:ii+2*p.stimPerBlock-1); temp = sort(mod(temp, 8));
-    if sum(ismember((0:7), temp)) < 4
-        error(['sentencecheck: blocks ' num2str(block) ' and ' num2str(block+1) ' does not have one of each stim type'])
-    end
-    block = block + 2;
-end
+% Code is busted now that we're using different counterbalance?
+% block = 1;
+% for ii = 1:2*p.stimPerBlock:length(key_sentences)
+%     temp = key_sentences(ii:ii+2*p.stimPerBlock-1); temp = sort(mod(temp, 8));
+%     if sum(ismember((0:7), temp)) < 4
+%         error(['sentencecheck: blocks ' num2str(block) ' and ' num2str(block+1) ' does not have one of each stim type'])
+%     end
+%     block = block + 2;
+% end
 
 end
