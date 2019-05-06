@@ -843,15 +843,15 @@ obj    = [];
 sub   = [];
 % fem    = [];
 % male   = [];
-clr  = [];
-bab = [];
+ch15  = [];
+ch24 = [];
 
 key_obj    = sort(horzcat(1:8:p.numStim, 2:8:p.numStim, 3:8:p.numStim, 4:8:p.numStim)); 
 key_subj   = sort(horzcat(5:8:p.numStim, 6:8:p.numStim, 7:8:p.numStim, 8:8:p.numStim)); 
 % key_fem    = sort(horzcat(1:8:p.numStim, 2:8:p.numStim, 5:8:p.numStim, 6:8:p.numStim));
 % key_male   = sort(horzcat(3:8:p.numStim, 4:8:p.numStim, 7:8:p.numStim, 8:8:p.numStim));
-key_clear  = (1:2:p.numStim);
-key_babble = (2:2:p.numStim);
+key_ch15  = (1:2:p.numStim);
+key_ch24 = (2:2:p.numStim);
 
 % Pull out which sentences are male/fem, obj/subj, clear/babble
 for ii = 1:length(key_sentences)
@@ -867,10 +867,10 @@ for ii = 1:length(key_sentences)
 %         male = horzcat(male, key_sentences(ii));  %#ok<AGROW>
 %     end
     
-    if find(key_sentences(ii) == key_clear)
-        clr = horzcat(clr, key_sentences(ii));  %#ok<AGROW>
-    elseif find(key_sentences(ii) == key_babble)
-        bab = horzcat(bab, key_sentences(ii));  %#ok<AGROW>
+    if find(key_sentences(ii) == key_ch15)
+        ch15 = horzcat(ch15, key_sentences(ii));  %#ok<AGROW>
+    elseif find(key_sentences(ii) == key_ch24)
+        ch24 = horzcat(ch24, key_sentences(ii));  %#ok<AGROW>
     end
 end
 
@@ -879,7 +879,7 @@ if (length(obj) ~= length (sub))
     error('sentencecheck: Number of object and subject-relative stim not equal')    
 % elseif (length(fem) ~= length (male))
 % 	error('sentencecheck: Number of female and male stim not equal')
-elseif (length(bab) ~= length (clr))
+elseif (length(ch24) ~= length (ch15))
     error('sentencecheck: Number of babble and clear stim not equal')
 end
 
