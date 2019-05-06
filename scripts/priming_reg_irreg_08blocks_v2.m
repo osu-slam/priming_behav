@@ -1,4 +1,4 @@
-%% priming_reg_irreg_v2
+%% priming_reg_irreg_v3
 % Code used to run the priming behavioral experiment. Consists of 8 blocks
 % where a prime (regular/irregular rhythm, or environmental/silent
 % baseline) is followed by fuzzy speech task using babble speech. To 
@@ -30,6 +30,14 @@
 %   frequency of the ambiance condition (389.365 Hz). Pitch was found using
 %   Audacity Nyquist prompt. Also updated counterbalancing. Still works on
 %   an A/B paradigm, but now sentences are counterbalanced differently. 
+% 05/06/19 -- New stimuli for main task. We found no significant results 
+%   using the multitalker babble and have switched to a new set of stimuli.
+%   Stimuli were created using Google's Text To Speech (see more here: 
+%   https://cloud.google.com/text-to-speech/), and then manipulated to have
+%   precise 4 Hz speech rates using both Praat and Matlab. Feel free to 
+%   reach out to me with more questions. Vocoding was generated using
+%   JPeelle's set of Matlab extensions. Based on some of our previous work,
+%   we've found 15ch and 2ch to be sufficient. 
 
 sca; DisableKeysForKbCheck([]); KbQueueStop; clc;
 clearvars;
@@ -45,17 +53,15 @@ AudioDevice = PsychPortAudio('GetDevices', 3);
 
 %% Collect subject information
 prompt = { ...
-    'Subject Initials:', ...
     'Subject Number:', ...
     'Subject Set (A or B):', ...
     'Skip Tutorial (1 to skip):', ...
     };
 dlg_in = inputdlg(prompt);
 
-subj.init  = dlg_in{1};
-subj.num   = str2double(dlg_in{2});
-subj.set   = upper(dlg_in{3});
-NoTutorial = str2double(dlg_in{4});
+subj.num   = str2double(dlg_in{1});
+subj.set   = upper(dlg_in{2});
+NoTutorial = str2double(dlg_in{3});
 if NoTutorial ~= 1
     NoTutorial = 0;
 end
@@ -79,13 +85,10 @@ p.numSent = 48; % number of sentence structures
 p.numStim = 384; % number of sentence .wav files
 p.sentType = 8;
 
-p.whichStim = {'sentences_clear'; 'sentences_snr-2'}; 
-p.whichPract = {'practice_clear'; 'practice_snr-2'}; 
-% Change the contents of the above cell to switch between stimuli:
-% 'sentences_clear'  'practice_clear'
-% 'sentences_snr0'   'practice_snr0'
-% 'sentences_snr-2'  'practice_snr-2'
-% 'sentences_snr-4'  'practice_snr-4'
+p.whichStim = {'sentences_15ch'; 'sentences_24ch'}; 
+p.whichPract = {'practice_15ch'; 'practice_24ch'}; 
+% Reach out to me if you would like to change stimuli. I am trying to make
+% the GitHub package a little smaller. 
 
 t.rxnWindow = 5; % Length of reaction time window after stimuli
 % NOTE: If this changes from 5 seconds, change the instructions accordingly
@@ -97,17 +100,17 @@ dir_exp  = pwd;
 dir_docs = fullfile(pwd, 'docs');
 dir_results = fullfile(pwd, 'results');
 dir_stim = fullfile(pwd, 'stim'); 
-dir_stim_primes = fullfile(pwd, 'stim', 'primes_reg_irreg_08blocks');
+dir_stim_primes = fullfile(pwd, 'stim', 'primes_reg_irreg');
 dir_stim_pract  = fullfile(pwd, 'stim', 'practice');
 
 % A quick bit of sanitation to make it easier to find subject data based on
 % subject number... 
 if subj.num < 10
-    results_tag = ['00' num2str(subj.num) '_' subj.init '_priming_reg_irreg_08blocks_' date];
+    results_tag = ['00' num2str(subj.num) '_priming_reg_irreg_08blocks_' date];
 elseif subj.num < 100
-    results_tag = ['0' num2str(subj.num) '_' subj.init '_priming_reg_irreg_08blocks_' date];
+    results_tag = ['0' num2str(subj.num) '_priming_reg_irreg_08blocks_' date];
 elseif subj.num < 1000
-    results_tag = [num2str(subj.num) '_' subj.init '_priming_reg_irreg_08blocks_' date];
+    results_tag = [num2str(subj.num) '_priming_reg_irreg_08blocks_' date];
 else
     err('Files will not save with correct name. Check subject number')
 end
