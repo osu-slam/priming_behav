@@ -1,0 +1,21 @@
+Thank you for participating in our experiment!\n\nPress space to continue through these instructions.
+This experiment has two components.\n\n(Press space to continue)
+First, you will hear some music or some ambiance.\nPlease stare straight ahead while the sound plays,\nand refrain from tapping your fingers or feet along with\nthe music.
+Immediately after the end of the music or ambiance,\nyou will hear a series of degraded sentences.\nPress space to listen:
+Press space to continue.
+In some blocks the sentence will be easier to understand,\nand other times it will be harder to understand.\nPress space to listen:
+Press space to continue.
+Listen carefully to each sentence and pay\nattention to *who* is performing the action.\n\nEven though it may be difficult to understand,\ndo NOT adjust the volume of the speakers!
+Brothers that tutor sisters are helpful.\n\nWho is performing the action?
+In this case, the BROTHERS are doing the tutoring.
+Sisters that tutor brothers are helpful.\n\nWho is performing the action?
+In this case, the SISTERS are doing the tutoring.
+For each sentence, you need to identify the\n*gender* of the person performing the action.
+Nephews that nieces welcome are gracious.\n\nWhat is the gender of the person performing\nthe action?
+Since NIECES are doing the welcoming, the\nanswer is FEMALE.
+Nieces that nephews welcome are gracious.\n\nWhat is the gender of the person performing\nthe action?
+Since NEPHEWS are doing the rescuing, the\nanswer is MALE.
+If the gender of the person performing the action is MALE,\npress the RIGHT arrow key.\n\nIf the gender of the person performing the action is FEMALE,\npress the LEFT arrow key.
+Let's do a practice block.\n\nDuring the practice, you will hear both types of sentences.\nYou will be told if you were right or wrong.\n\nYou will have 5 seconds to respond each trial.
+Great job! You answered %s out of 6 sentences\ncorrectly.\n\nPress the left arrow key to repeat the practice block,\nor press space to start the main experiment.
+Now let's move onto the real experiment. You\nwill not be told if you are right or wrong\nafter each sentence.\n\nGood luck!\nPress space to start.
